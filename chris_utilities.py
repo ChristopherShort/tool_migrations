@@ -426,6 +426,7 @@ def cagr(df):
     return cagr
 
 
+
 def group_sum_unstack(df, group_var, sum_var, unstack_var):
     """Demongraphy group by date and asgs, but unstack by asgs
     
