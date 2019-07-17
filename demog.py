@@ -234,6 +234,7 @@ def make_dependency_df(data_df, bins=[0, 14, 64, 101]):
     )
     return dependency
 
+
 def seq_idx(df):
     """
     Provide boolean indexer for South East Queensland
