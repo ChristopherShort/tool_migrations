@@ -233,3 +233,35 @@ def make_dependency_df(data_df, bins=[0, 14, 64, 101]):
         dependency.Working_age / dependency[["Youth", "Working_age", "Older_age"]]
     )
     return dependency
+
+def seq_idx(df):
+    """
+    Provide boolean indexer for South East Queensland
+
+    Parameters:
+    -------
+    df : dataframe
+        a population dataframe
+
+    Raises
+    ------
+    ValueError
+        if the dataframe does not contain an asgs_name column
+
+    Returns
+    -------
+    idx_seq : boolean indexer   
+        an indexer to Tudge's definition of SEQ.
+    """
+
+    if "asgs_name" not in df.columns:
+        raise ValueError ("asgs_name column not in dataframe")
+
+    idx_seq = ( 
+        (df.asgs_name == 'Greater Brisbane') |
+        (df.asgs_name == 'Sunshine Coast') | 
+        (df.asgs_name == 'Gold Coast') |
+        (df.asgs_name == 'Toowoomba')
+    )
+
+    return idx_seq
