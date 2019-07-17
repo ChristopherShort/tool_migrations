@@ -424,3 +424,29 @@ def cagr(df):
     cagr = ((value_end / value_initial) ** (1/number_of_years) - 1) * 100
 
     return cagr
+
+
+def group_sum_unstack(df, group_var, sum_var, unstack_var):
+    """Demongraphy group by date and asgs, but unstack by asgs
+    
+    Parameters
+    ----------
+    df : dataframe
+        usually a demography dataframe
+    group_var : list or str
+        variables for groupby
+    sum_var : list or str
+        what variable is being aggregated
+    unstack_var : str
+        what variable to ungroupby
+    """
+
+    if isinstance(unstack_var, str):
+        unstack_var = [unstack_var]
+
+    return (df
+       .groupby(group_var)
+       [sum_var] # should this be in [] if sum_var is a list?
+       .sum()
+       .unstack(unstack_var)
+      )
