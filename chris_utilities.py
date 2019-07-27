@@ -9,6 +9,9 @@ import matplotlib as mpl
 from IPython.core.display import HTML, display_html
 
 
+data_abs_path = Path(Path.home() / "Documents/Analysis/Australian economy/Data/ABS")
+
+
 def clean_column_names(df, other_text_to_remove='sector'):
     '''
     clean dataframe names - replace spaces, hyphens and '_sector' for labour force data!
@@ -29,7 +32,7 @@ def clean_column_names(df, other_text_to_remove='sector'):
     return df
 
 
-def read_abs_data(rel_path='../ABS Data',
+def read_abs_data(rel_path=data_abs_path,
                   fname='310101.xls',
                   series_id=None,
                   sheet_name='Data1'):
@@ -88,7 +91,7 @@ def read_abs_data(rel_path='../ABS Data',
     return df
 
 
-def read_abs_notes(rel_path='../ABS Data',
+def read_abs_notes(rel_path=data_abs_path,
                    fname='310101.xls',
                    sheet_name='Data1'):
     '''
@@ -124,7 +127,7 @@ def read_abs_notes(rel_path='../ABS Data',
     return
 
 
-def read_abs_meta_data(rel_path='../Data/ABS',
+def read_abs_meta_data(rel_path=data_abs_path,
                        fname='310101.xls',
                        sheet_name='Data1'):
     '''
@@ -451,3 +454,5 @@ def group_sum_unstack(df, group_var, sum_var, unstack_var):
        .sum()
        .unstack(unstack_var)
       )
+
+
