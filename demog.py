@@ -11,6 +11,7 @@ import pandas as pd
 
 from chris_utilities import read_abs_data, read_abs_meta_data
 
+data_abs_path = Path(Path.home() / "Documents/Analysis/Australian economy/Data/ABS")
 
 def series_id_3101():
     series_id = {

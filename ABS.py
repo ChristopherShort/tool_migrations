@@ -275,14 +275,21 @@ def download_abs_file(url, xl_file_name, data_folder=DATA_FOLDER):
     return None
 
 
-def download_abs_catalog_excel_files(url_cat_no='3101.0', data_folder=DATA_FOLDER):
+def download_abs_catalog_excel_files(cat_no='3101.0',
+url_cat_downloads_page=None,
+data_folder=DATA_FOLDER
+):
     '''
     Download all excel files associated with a given catalog number
     '''
+    print(url_cat_downloads_page)
     session = HTMLSession()
-    latest_release_base_url = "http://www.abs.gov.au/ausstats/abs@.nsf/mf/"
-    url_cat_no = latest_release_base_url + url_cat_no
-    url_cat_downloads_page = get_downloads_page_url(url_cat_no)
+
+    if url_cat_downloads_page is None:
+        latest_release_base_url = "http://www.abs.gov.au/ausstats/abs@.nsf/mf/"
+        cat_no = latest_release_base_url + cat_no
+        url_cat_downloads_page = get_downloads_page_url(cat_no)
+
     excel_downloads_page = session.get(url_cat_downloads_page)
 
     # all downloads are tr elements of class 'listentry'
