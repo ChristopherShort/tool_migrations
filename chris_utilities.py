@@ -162,6 +162,22 @@ def read_abs_meta_data(rel_path=data_abs_path,
 
     return meta
 
+def remove_note_references(df):
+    """Remove references such as "(a)" from label rows in ABS non-timeseries worksheets
+    
+    Parameters
+    ----------
+    df : dataframe
+        a dataframe containing an ABS worksheet with row labels in first colum 
+    """
+    pat = r"(.+)(\([^\)]+\))"
+    df.iloc[:,0] = df.iloc[:,0].str.replace(pat,r'\1')
+    
+    pat = r"\.$"
+    df.iloc[:,0] = df.iloc[:,0].str.replace(pat,"")
+    
+    return df
+
 
 def adjust_chart(ax, ylim_min=None, do_thousands=True):
     '''
@@ -427,7 +443,6 @@ def cagr(df):
     cagr = ((value_end / value_initial) ** (1/number_of_years) - 1) * 100
 
     return cagr
-
 
 
 def group_sum_unstack(df, group_var, sum_var, unstack_var):
