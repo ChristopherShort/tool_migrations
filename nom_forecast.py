@@ -300,7 +300,7 @@ def append_nom_columns(df):
     return df
 
 # Dictionary utilities
-def get_vsc_reference(file_path, engine='fastparquet'):
+def get_vsc_reference(file_path):
     '''
     Return a dataframe containing definitions and groupings for visa subclasses
     The reference definitions and groupings is the sql table 'REF_VISA_SUBCLASS'
@@ -317,7 +317,7 @@ def get_vsc_reference(file_path, engine='fastparquet'):
     '''
 
     reference_visa_dict = (pd
-                            .read_parquet(file_path, engine=engine)
+                            .read_parquet(file_path)
                             .rename(columns=str.lower)
                             .rename(columns = lambda x: x.replace(' ', '_'))
                             )

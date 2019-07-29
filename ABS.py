@@ -14,7 +14,7 @@ import numpy as np
 from pandasdmx import Request
 
 
-# Paths relative to the home directory
+# Absolute paths
 DATA_FOLDER = Path(f'{Path.home()}/Documents/Analysis/Australian economy/Data/ABS/')
 DICT_FOLDER = Path(f'{Path.home()}/Documents/Analysis/Australian economy/Data/Dictionaries/')
 

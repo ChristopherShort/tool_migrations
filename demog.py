@@ -1,7 +1,7 @@
 """
 A set of utilities to manipulate ABS Australian Demography tables (eg3101, 3102, 3101016)
 """
-# from pathlib import Path
+from pathlib import Path
 
 import pandas as pd
 
