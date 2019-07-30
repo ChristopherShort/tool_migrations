@@ -91,7 +91,7 @@ def read_abs_data(rel_path=data_abs_path,
     return df
 
 
-def read_abs_notes(rel_path=data_abs_path,
+def read_abs_notes(folder_path=data_abs_path,
                    fname='310101.xls',
                    sheet_name='Data1'):
     '''
@@ -102,7 +102,7 @@ def read_abs_notes(rel_path=data_abs_path,
         This assumes that last note does not have a line continuation, or is not
         a line continuation itself
     '''
-    fpath = rel_path / fname
+    fpath = folder_path / fname
 
     notes = pd.read_excel(fpath,
                           sheet_name=sheet_name,
@@ -127,40 +127,35 @@ def read_abs_notes(rel_path=data_abs_path,
     return
 
 
-def read_abs_meta_data(rel_path=data_abs_path,
+def read_abs_meta_data(folder_path=data_abs_path,
                        fname='310101.xls',
                        sheet_name='Data1'):
     '''
-    ABS meta data contained in first 10 rows
-    Return meta data for all series in worksheet
-    User to extract relevant meta data for specific series ID from returned object
-    '''
+    Return met data for all sereis from an ABS time series worksheet.
 
-    fpath = Path(rel_path) / fname
+    # TODO: think about multiple data sheets, should this single sheet function be generalised
+    '''
+    # Meta data contained in the first 10 rows
+    nrows = 10 
+
+    fpath = Path(folder_path) / fname
 
     meta = pd.read_excel(fpath,
                          sheet_name=sheet_name,
                          header=None,
+                         nrows=nrows
                          )
-    meta = meta.iloc[:10]
+
+    # set column names to series_id (last row), and remove the last row
     meta.columns = meta.iloc[-1]
     meta = meta[:-1]
 
     if meta.iloc[:, 0].isna()[0]:
         meta.iloc[0, 0] = 'Description'
+    else:
+        meta.iloc[0, 0] = met.iloc[0,0].replace(' *> ', '', regex=True) # wonder what ABS workbooks needed this?
 
-    meta = (meta
-            .set_index('Series ID')
-            .rename_axis(index='meta', columns='')
-            .iloc[:10]
-            .T
-            .assign(Description=lambda x: x.Description.replace(' *> ', '', regex=True))
-            )
-    # meta = meta.iloc[:10]
-
-    # meta.loc['Description'] = meta.loc['Description'].replace(' *> ', '', regex=True)
-
-    return meta
+    return meta.set_index('Series ID').rename_axis(columns=None).T
 
 def remove_note_references(df):
     """Remove references such as "(a)" from label rows in ABS non-timeseries worksheets
