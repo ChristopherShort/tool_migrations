@@ -1352,7 +1352,7 @@ def gen_abs_group_totals(df):
             .reset_index() 
     )
 ### NOM (3101) analysis
-def plot_nom_delta(year_start, year_end, df, ascending=True):
+def plot_nom_delta(year_start, year_end, df, ascending=True, legend_display=True):
     '''
     TODO: return horizontal bar chart showing changes in groups from year_start to year_end
     TODO: add axes title: NOM delta between year_start and year_end
@@ -1464,8 +1464,9 @@ def plot_nom_delta(year_start, year_end, df, ascending=True):
 
     thousands (ax, y=False)
 
-    legend_elements = [Patch(facecolor=colour, label=visa_type) for visa_type, colour in nom_color_dict.items()]
-    ax.legend(handles=legend_elements, frameon=True, facecolor='white', edgecolor='white', loc=8)
+    if legend_display:
+        legend_elements = [Patch(facecolor=colour, label=visa_type) for visa_type, colour in nom_color_dict.items()]
+        ax.legend(handles=legend_elements, frameon=False, facecolor='white', edgecolor='white')
 
     ax.set_ylabel('')
 
