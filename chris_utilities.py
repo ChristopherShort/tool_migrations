@@ -32,7 +32,7 @@ def clean_column_names(df, other_text_to_remove='sector'):
     return df
 
 
-def read_abs_data(rel_path=data_abs_path,
+def read_abs_data(folder_path=data_abs_path,
                   fname='310101.xls',
                   series_id=None,
                   sheet_name='Data1'):
@@ -54,16 +54,7 @@ def read_abs_data(rel_path=data_abs_path,
 
     '''
 
-    # Change rel path to be absolute 2019-01-01
-    rel_path = (Path.home() /
-                'Documents' /
-                'Analysis' /
-                'Australian economy' /
-                'Data' /
-                'ABS'
-                )
-
-    fpath = rel_path / fname
+    fpath = folder_path / fname
 
     df = pd.read_excel(fpath,
                        sheet_name=sheet_name,
@@ -74,7 +65,7 @@ def read_abs_data(rel_path=data_abs_path,
 
     # Make dates end of month
     df.index = df.index + pd.offsets.MonthEnd()
-    df.index.name = 'Date'
+    df.index.name = 'date'
 
     if series_id is None:
         # Return all data with ABS variable names
@@ -130,11 +121,26 @@ def read_abs_notes(folder_path=data_abs_path,
 def read_abs_meta_data(folder_path=data_abs_path,
                        fname='310101.xls',
                        sheet_name='Data1'):
-    '''
+    """
     Return met data for all sereis from an ABS time series worksheet.
 
     # TODO: think about multiple data sheets, should this single sheet function be generalised
-    '''
+    
+    Parameters
+    ----------
+    folder_path : Path object, optional
+        path to folder containing ABS workbook 
+    fname : str, optional
+        abs timeseries workbook, by default '310101.xls'
+    sheet_name : str, optional
+        Data1, Data2, etc, by default 'Data1'description_labels=None
+    
+    Returns
+    -------
+    dataframe
+        a dataframe containing ABS time series meta data, index is Series ID, columns are ABS meta data
+    """
+
     # Meta data contained in the first 10 rows
     nrows = 10 
 
@@ -153,9 +159,59 @@ def read_abs_meta_data(folder_path=data_abs_path,
     if meta.iloc[:, 0].isna()[0]:
         meta.iloc[0, 0] = 'Description'
     else:
-        meta.iloc[0, 0] = met.iloc[0,0].replace(' *> ', '', regex=True) # wonder what ABS workbooks needed this?
+        meta.iloc[0, 0] = met.iloc[0, 0].replace(' *> ', '', regex=True)  # wonder what ABS workbooks needed this?
 
     return meta.set_index('Series ID').rename_axis(columns=None).T
+
+
+def meta_description_split(df, label_list):
+    """Split ABS Description field into components.  Components are delimited with ';'
+    
+    Parameters
+    ----------
+    df : dataframe
+        a 
+    label_list : list
+        contains labels for the delimited field in Description column
+
+    Returns
+    -------
+    dataframe :
+        with index of ABS Series ID and columns of the Description elements
+    """
+
+    def drop_last_column(df):
+        """ABS Descriptions use ';' as separator and the last character is always a ';'
+            Pandas doesn't allow a lambda function in the drop columns, so this pipe funciton
+        
+        Parameters
+        ----------
+        df : dataframe
+        
+        Returns
+        -------
+        dataframe :
+            
+        """
+        cols = df.columns
+        return df.drop(columns=cols[-1])
+    
+    if 'Description' not in df.columns:
+        raise ValueError("'Description' not found in columns")
+        
+
+    df = (df
+            .Description
+            .str
+            .split(pat=r" *; *", expand=True)
+            .pipe(drop_last_column)
+            .rename_axis(index="Series_ID", columns=None)
+    )
+
+    df.columns = label_list
+
+    return df 
+
 
 def remove_note_references(df):
     """Remove references such as "(a)" from label rows in ABS non-timeseries worksheets
@@ -466,3 +522,16 @@ def group_sum_unstack(df, group_var, sum_var, unstack_var):
       )
 
 
+############ Debugging utilies
+
+def csnap(df, fn=lambda x: x.shape, msg=None):
+    """ Custom Help function to print things in method chaining via pipe.
+        Returns back the df to further use in chaining.
+        For example (df.pipe(df_shape) as part of a method chain to track changing size
+        See https://towardsdatascience.com/the-unreasonable-effectiveness-of-method-chaining-in-pandas-15c2109e3c69
+        Note you can pass other lambda functions: eg  .pipe(csnap, lambda x: x.head(), msg="After")
+    """
+    if msg:
+        print(msg)
+    display(fn(df))
+    return df
