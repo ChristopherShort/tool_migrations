@@ -481,7 +481,6 @@ def cagr(df):
 
     # use the dates at the start and end of the period to determine the number of years.
     # Former way - indended to be a bit more flexible - but wasn't and wrong!   
-    number_of_years = int((df.index[-1] - df.index[0]) / np.timedelta64(1, 'Y')) + 1
 
     number_of_years = df.index.year[-1] - df.index.year[0]
 
