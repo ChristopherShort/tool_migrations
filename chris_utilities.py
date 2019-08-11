@@ -388,7 +388,13 @@ def thousands(*axes, y=True):
         # ax.yaxis.set_major_formatter(y_formatter)
 
 
-def write_y_axis_label(ax, text='missing', x_offset=0.05, y_offset=0.03):
+def write_y_axis_label(ax,
+    text='missing',
+    x_offset=0,
+    y_offset=0.02,
+    color="#808080",
+    fontsize=8,
+    ):
 
     x_lhs = -x_offset
     x_rhs = 1 + x_offset
@@ -396,14 +402,20 @@ def write_y_axis_label(ax, text='missing', x_offset=0.05, y_offset=0.03):
     y_rhs = 1 + y_offset
 
     ax.text(x_lhs, y_lhs, text,
-            horizontalalignment='left',
-            verticalalignment='top',
-            transform=ax.transAxes)
+            horizontalalignment='right',
+            verticalalignment='bottom',
+            transform=ax.transAxes,
+            color=color,
+            fontsize=fontsize
+            )
 
     ax.text(x_rhs, y_rhs, text,
-            horizontalalignment='right',
-            verticalalignment='top',
-            transform=ax.transAxes)
+            horizontalalignment='left',
+            verticalalignment='bottom',
+            transform=ax.transAxes,
+            color=color,
+            fontsize=fontsize
+            )
     return None
 
 
