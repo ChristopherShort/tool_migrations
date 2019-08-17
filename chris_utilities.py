@@ -532,22 +532,6 @@ def group_sum_unstack(df, group_var, sum_var, unstack_var):
        .unstack(unstack_var)
       )
 
-
-############ Debugging utilies
-
-def csnap(df, fn=lambda x: x.shape, msg=None):
-    """ Custom Help function to print things in method chaining via pipe.
-        Returns back the df to further use in chaining.
-        For example (df.pipe(df_shape) as part of a method chain to track changing size
-        See https://towardsdatascience.com/the-unreasonable-effectiveness-of-method-chaining-in-pandas-15c2109e3c69
-        Note you can pass other lambda functions: eg  .pipe(csnap, lambda x: x.head(), msg="After")
-    """
-    if msg:
-        print(msg)
-    display(fn(df))
-    return df
-
-
 def get_oecd_members():
     oecd_members = {
         'Australia': '7-Jun-1971',
@@ -588,3 +572,29 @@ def get_oecd_members():
         }
 
     return pd.Series(oecd_members, dtype="datetime64[ns]").sort_values()
+
+
+############ Debugging utilies
+
+def csnap(df, fn=lambda x: x.shape, msg=None):
+    """ Custom Help function to print things in method chaining via pipe.
+        Returns back the df to further use in chaining.
+        For example (df.pipe(df_shape) as part of a method chain to track changing size
+        See https://towardsdatascience.com/the-unreasonable-effectiveness-of-method-chaining-in-pandas-15c2109e3c69
+        Note you can pass other lambda functions: eg  .pipe(csnap, lambda x: x.head(), msg="After")
+    """
+    if msg:
+        print(msg)
+    display(fn(df))
+    return df
+
+import pandas.util.testing as tm
+def makeTimeSeriesDataFrame():
+    """
+    Return a dataframe with monthly timeseries, defaults are 30 rows, 4 columns
+    """
+    # There are around 30 of these
+    #[i for i in dir(tm) if i.startswith('make')]
+    
+    return tm.makeTimeDataFrame(freq='M')
+
