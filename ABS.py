@@ -324,6 +324,14 @@ data_folder=DATA_FOLDER
 def ASGS_definitions(dict_folder=DICT_FOLDER):
     '''
     Return a dataframe containing ASGS 2016 links
+
+    Parameters:
+    ----------
+
+    Returns:
+    -------
+    asgs: a datafram of all ASGS regions
+    asgs_mapper: a dictionary mapping ASG codes to names
     '''
     asgs = pd.read_csv(dict_folder / 'SA2_2016_AUST.csv')
 
