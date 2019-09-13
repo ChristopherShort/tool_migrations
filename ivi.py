@@ -10,6 +10,7 @@ import chris_utilities as cu
 
 DATA_FOLDER_VACANCY = Path.home() / "Documents/Analysis/Australian economy/Data/internet_vacancy"
 
+COL_ORDER = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "Total"]
 
 def download_vacancy_file():
     session = HTMLSession()
@@ -96,9 +97,7 @@ def regional_vacancies(
                 .assign(Total = lambda x:x.sum(axis=1))
             )
 
-    col_order = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "Total"]
-
-    return states[col_order]
+    return states[COL_ORDER]
 
 
 def regional_vacancies_exclude_mainland_state_capitals(
@@ -167,7 +166,6 @@ def QTB_vacancy_table(vacancies=None, month=None):
         return df
 
     
-
 def one_digit_anzsco(
     vacancies=None,
     match_date=None,
@@ -223,6 +221,6 @@ def one_digit_anzsco(
             .round()
     )
 
-    return df
+    return df[COL_ORDER]
 
 
