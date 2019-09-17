@@ -128,6 +128,34 @@ def regional_vacancies_exclude_mainland_state_capitals(
     )
 
 
+def regional_vacancies_exclude_all_capitals(
+    vacancies = None,
+    exclude_capitals=["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth", "Hobart", "Darwin", "Canberra"],
+    ):
+    """[summary]
+    
+    Parameters
+    ----------
+    vacancies : [type], optional
+        [description], by default None
+    exclude_capitals : list, optional
+        [description], by default ["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth"]
+    
+    Returns
+    -------
+    [type]
+        [description]
+    """
+    if vacancies is None:
+            vacancies = read_vacancy()
+
+    return (regional_vacancies(vacancies, exclude_capitals)
+                .drop(columns=["Total"])
+                .sum(axis="columns")
+                .rename("Total (excludes all capitals)")
+    )
+
+
 def QTB_vacancy_table(vacancies=None, month=None):
     """Make the QTB table containing Regional and a total exlucding mainlain state capitals
     
