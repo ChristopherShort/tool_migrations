@@ -17,9 +17,9 @@ import matplotlib as mpl
 import chris_utilities as cu
 import nom
 
-data_folder = Path(Path.home() / 'Documents/Analysis/Australian economy/Data/ABS')
-data_folder_stock = Path(Path.home() / 'Documents/Analysis/Australian economy/Data/Stock')
-data_folder_nom = Path(Path.home()/"Documents/Analysis/Australian economy/Data/NOM unit record data/Traveller Characteristics Parquet/")
+data_folder_ABS = Path.home() / 'Documents/Analysis/Australian economy/Data/ABS'
+data_folder_stock = Path.home() / 'Documents/Analysis/Australian economy/Data/Stock'
+data_folder_nom = Path.home() / "Documents/Analysis/Australian economy/Data/NOM unit record data/Traveller Characteristics Parquet/"
 
 capitals_names = {
     "Australian Capital Territory": "Canberra",
@@ -104,7 +104,7 @@ def n_year_growth_rate(df, year_start="2013", year_end = "2018"):
     """
     Loop over the summary dataframe and calculate growth rate only for regions, not share, etc
     """
-    erp = pd.read_parquet(data_folder / "3218.parquet")
+    erp = read_erp()
     
     col_name = f"{int(year_end) - int(year_start)}_year_growth_rate"
     
@@ -125,7 +125,8 @@ def n_year_growth_rate(df, year_start="2013", year_end = "2018"):
     return df
 
 
-def read_erp():
+### ERP measures #####
+def read_erp(data_folder=data_folder_ABS):
     return pd.read_parquet(data_folder / "3218.parquet")
 
 
@@ -141,7 +142,24 @@ def national(erp=None):
 
 
 def capitals_levels(erp=None, totals=True):
+    """Get capital ERPs, including total
+    
+    Parameters
+    ----------
+    erp : [type], optional
+        [description], by default None
+    totals : bool, optional
+        [description], by default True
+    
+    Returns
+    -------
+    [type]
+        [description]
+    """
 
+    if erp is None:
+        erp = read_erp()
+    
     def add_all(df, totals):
         if totals:
             return df[capitals_order + ["total"]]
@@ -162,9 +180,9 @@ def capitals_levels(erp=None, totals=True):
     )
 
 
-def SUA(data_folder=data_folder, fname = '32180ds0003_2008-18.xls', keep_asgs_code=True):
+def SUA(data_folder=data_folder_ABS, fname = '32180ds0003_2008-18.xls', keep_asgs_code=True):
     sua = (pd
-            .read_excel(data_folder / fname,
+            .read_excel(data_folder/ fname,
                     sheet_name='Table 1',
                     skiprows=6,
                     )
@@ -193,8 +211,8 @@ def SUA(data_folder=data_folder, fname = '32180ds0003_2008-18.xls', keep_asgs_co
     return sua
 
 
-def SEQ(data_folder=data_folder, fname="3129.parquet"):
-    erp = pd.read_parquet(data_folder / "3218.parquet")
+def SEQ():
+    erp = read_erp()
 
     idx_seq = (
         (erp.asgs_name == "Greater Brisbane") |
@@ -208,6 +226,11 @@ def SEQ(data_folder=data_folder, fname="3129.parquet"):
             .assign(SEQ=lambda x: x.sum(axis="columns"))
     )
 
+
+# TODO: General extractio of SA2/3/4 from erp (read_erp())
+
+
+#### Stock data
 
 def get_stock_data(fname="stock_today.parq",
     datafolder=data_folder_stock,
@@ -257,11 +280,12 @@ def get_stock_data(fname="stock_today.parq",
         ### return original data, monthly=None
         return df
 
-
-def population_by_age(fname="310105x.feather"):
+#### Age related demography
+def population_by_age(data_folder=data_folder_ABS, fname="310105x.feather"):
     return pd.read_feather(data_folder / fname)
 
 
+### NOM
 def get_nom(data_folder=data_folder_nom):
     nom_fields = [
         'person_id',
@@ -291,3 +315,4 @@ def get_nom(data_folder=data_folder_nom):
     return df
 
 
+def regional_nom(data_folder=data_folder_nom)
