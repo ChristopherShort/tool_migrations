@@ -45,6 +45,7 @@ capitals_order = [
 
 components_order = ["natural", "nom", "nim"]
 
+
 def make_summary(state, state_name, year_start="2013", year_end = "2018"):
     """
     """
@@ -124,7 +125,14 @@ def n_year_growth_rate(df, year_start="2013", year_end = "2018"):
     return df
 
 
-def national(erp):
+def read_erp():
+    return pd.read_parquet(data_folder / "3218.parquet")
+
+
+def national(erp=None):
+    if erp is None:
+        erp=read_erp()
+    
     idx = erp.regiontype == "AUS"
     return (erp[idx][["date", "erp"]]
             .set_index("date")
@@ -132,11 +140,11 @@ def national(erp):
     )
 
 
-def capitals_levels(erp, totals=True):
+def capitals_levels(erp=None, totals=True):
 
     def add_all(df, totals):
         if totals:
-            return df[capitals_order + ["All"]]
+            return df[capitals_order + ["total"]]
         else:
             return df[capitals_order]
     
@@ -149,7 +157,7 @@ def capitals_levels(erp, totals=True):
     return (erp[idx]
             .pivot_table(index='date', columns='asgs_name', values='erp')
             .rename(columns=capitals_names)
-            .assign(All = lambda x: x.sum(axis=1))
+            .assign(total = lambda x: x.sum(axis=1))
             .pipe(add_all, totals)
     )
 
@@ -281,3 +289,5 @@ def get_nom(data_folder=data_folder_nom):
     )
 
     return df
+
+
