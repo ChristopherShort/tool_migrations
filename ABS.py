@@ -15,8 +15,8 @@ from pandasdmx import Request
 
 
 # Absolute paths
-DATA_FOLDER = Path(f'{Path.home()}/Documents/Analysis/Australian economy/Data/ABS/')
-DICT_FOLDER = Path(f'{Path.home()}/Documents/Analysis/Australian economy/Data/Dictionaries/')
+DATA_FOLDER = Path.home() / "Documents/Analysis/Australian economy/Data/ABS/"
+DICT_FOLDER = Path.home() / "Documents/Analysis/Australian economy/Data/Dictionaries/"
 
 
 def get_downloads_page_url(url, allow_redirects=True):
@@ -276,9 +276,9 @@ def download_abs_file(url, xl_file_name, data_folder=DATA_FOLDER):
 
 
 def download_abs_catalog_excel_files(cat_no='3101.0',
-url_cat_downloads_page=None,
-data_folder=DATA_FOLDER
-):
+    url_cat_downloads_page=None,
+    data_folder=DATA_FOLDER
+    ):
     '''
     Download all excel files associated with a given catalog number
     '''

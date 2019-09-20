@@ -315,4 +315,11 @@ def get_nom(data_folder=data_folder_nom):
     return df
 
 
-def regional_nom(data_folder=data_folder_nom)
+def regional_nom(data_folder=data_folder_ABS):
+    """[summary]
+    
+    Parameters
+    ----------
+    data_folder : [type], optional
+        [description], by default data_folder_ABS
+    """
