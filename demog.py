@@ -13,6 +13,7 @@ from chris_utilities import read_abs_data, read_abs_meta_data
 
 data_abs_path = Path(Path.home() / "Documents/Analysis/Australian economy/Data/ABS")
 
+
 def series_id_3101():
     series_id = {
         "births": "A2133244X",
@@ -84,6 +85,8 @@ def component_shares_between_dates(df):
 
 def annual_population_components(df, month=6):
     """
+    TODO: read in 3101 rather than passing in as df
+    
     Calculate annual nom and natural increase components over the period covered by a 3101 dataframe.
 
     Parameters
@@ -111,17 +114,22 @@ def annual_population_components(df, month=6):
     ## Adjust nom for period 1996 through 2005
     # population.loc["1996":"2005", "net_overseas_migration"] = population.loc["1996":"2005", "net_overseas_migration"] * 1.25
 
-    population = (
-        population.assign(NI_and_NOM=lambda x: x[["natural_increase", "net_overseas_migration"]].sum(axis=1))
+    population = population.assign(
+        NI_and_NOM=lambda x: x[["natural_increase", "net_overseas_migration"]].sum(
+            axis=1
+        )
     )
-    
+
     # adjust NOM and natural increase to be correct levels of ERP - apportion intercensal equally
-    nom_intercensal_NOM_share = population.net_overseas_migration / population.NI_and_NOM
-    
-    population = (population
-        .assign(nom_adj=lambda x: nom_intercensal_NOM_share * x.ERP_flow)
-        .assign(natural_increase_adj = lambda x: (1-nom_intercensal_NOM_share) * x.ERP_flow)
-    ) 
+    nom_intercensal_NOM_share = (
+        population.net_overseas_migration / population.NI_and_NOM
+    )
+
+    population = population.assign(
+        nom_adj=lambda x: nom_intercensal_NOM_share * x.ERP_flow
+    ).assign(
+        natural_increase_adj=lambda x: (1 - nom_intercensal_NOM_share) * x.ERP_flow
+    )
 
     return population
 
@@ -257,13 +265,13 @@ def seq_idx(df):
     """
 
     if "asgs_name" not in df.columns:
-        raise ValueError ("asgs_name column not in dataframe")
+        raise ValueError("asgs_name column not in dataframe")
 
-    idx_seq = ( 
-        (df.asgs_name == 'Greater Brisbane') |
-        (df.asgs_name == 'Sunshine Coast') | 
-        (df.asgs_name == 'Gold Coast') |
-        (df.asgs_name == 'Toowoomba')
+    idx_seq = (
+        (df.asgs_name == "Greater Brisbane")
+        | (df.asgs_name == "Sunshine Coast")
+        | (df.asgs_name == "Gold Coast")
+        | (df.asgs_name == "Toowoomba")
     )
 
     return idx_seq
