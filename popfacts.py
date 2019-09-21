@@ -43,6 +43,18 @@ capitals_order = [
     "Canberra"
 ]
 
+state_order = [
+     "New South Wales",
+     "Victoria",
+     "Queensland",
+     "South Australia",
+     "Western Australia",
+     "Tasmania",
+     "Northern Territory",
+     "Australian Capital Territory",
+     "Other Territories",
+]
+
 components_order = ["natural", "nom", "nim"]
 
 
@@ -129,6 +141,30 @@ def n_year_growth_rate(df, year_start="2013", year_end = "2018"):
 def read_erp(data_folder=data_folder_ABS):
     return pd.read_parquet(data_folder / "3218.parquet")
 
+def get_state_order(other_territories=False):
+    """[summary]
+    
+    Parameters
+    ----------
+    other_territories : bool, optional
+        [description], by default False
+    
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
+    if other_territories:
+        return state_order
+    else:
+        return state_order[:-1]
+    
+
+
+
+# def read_regional_nom_nim(data_folder=data_folder_ABS):
+
 
 def national(erp=None):
     if erp is None:
@@ -177,6 +213,25 @@ def capitals_levels(erp=None, totals=True):
             .rename(columns=capitals_names)
             .assign(total = lambda x: x.sum(axis=1))
             .pipe(add_all, totals)
+    )
+
+
+def rest_of_state(erp=None):
+    if erp is None:
+        erp = read_erp()
+
+    
+    idx = (
+            (erp.regiontype == "GCCSA") &
+           (
+               ~ ((erp.asgs_name.str.contains('Greater')) |
+                  (erp.asgs_name.str.contains('Australian Capital'))
+               )
+           )
+        )
+    return (erp[idx]
+            .pivot_table(index='date', columns='asgs_name', values='erp')
+            .rename(columns=capitals_names)
     )
 
 
@@ -279,6 +334,7 @@ def get_stock_data(fname="stock_today.parq",
     else:
         ### return original data, monthly=None
         return df
+
 
 #### Age related demography
 def population_by_age(data_folder=data_folder_ABS, fname="310105x.feather"):
