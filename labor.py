@@ -155,7 +155,8 @@ def read_lm5(data_folder=DATA_FOLDER, delete_unknown_COB=True, age_mapping=None)
     if delete_unknown_COB:
         df = remove_unknown_COB(df)
 
-    if not age_mapping:
+
+    if age_mapping is None:
         return df
     else:
         return set_age_groups(df, age_mapping=age_mapping)
@@ -172,7 +173,7 @@ def remove_unknown_COB(df):
     """
     # Remove unknown COB observation
     idx = (df.COB == "Inadequately Described / Born at Sea") | (df.COB == "Not stated")
-    df = df.loc[~idx]
+    df = df.loc[~idx].copy()
 
     # rename - Australia and OS born
     idx = df.COB == "Australia (includes External Territories)"
