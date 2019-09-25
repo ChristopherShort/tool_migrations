@@ -21,6 +21,7 @@ def download_vacancy_file():
     else:
         return False
 
+
 def make_vacancy_parquet(
     data_folder=DATA_FOLDER_VACANCY,
     fname="IVI_DATA_regional - May 2010 onwards.xlsx",
@@ -177,6 +178,7 @@ def QTB_vacancy_table(vacancies=None, month=None):
     df= (pd
             .concat(
                 [regional_vacancies(vacancies),
+                regional_vacancies_exclude_all_capitals(vacancies),
                 regional_vacancies_exclude_mainland_state_capitals(vacancies),
                 ],
                 axis="columns"
