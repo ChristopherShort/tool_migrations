@@ -11,7 +11,7 @@ import pandas as pd
 
 from chris_utilities import read_abs_data, read_abs_meta_data
 
-data_abs_path = Path(Path.home() / "Documents/Analysis/Australian economy/Data/ABS")
+data_abs_path = Path.home() / "Documents/Analysis/Australian economy/Data/ABS"
 
 
 def series_id_3101():
@@ -132,6 +132,56 @@ def annual_population_components(df, month=6):
     )
 
     return population
+
+
+def get_nom(df=None):
+    """Exract NOM data
+    
+    Parameters
+    ----------
+    df : [type], optional
+        [description], by default None
+    """
+
+    if df is None:
+        df = read_abs_data(series_id=series_id_3101())
+
+    return df.net_overseas_migration
+
+
+def nom_year_ending(nom=None):
+    """Return year ending nom
+    
+    Parameters
+    ----------
+    nom : [type], optional
+        [description], by default None
+    """
+
+    if nom is None:
+        nom = read_abs_data(series_id=series_id_3101())
+
+    return nom.net_overseas_migration.rolling(4).sum()
+        
+
+def nom_year_ending_annual(nom=None, quarter="A-Jun"):
+    """Return year ending for a given quarter
+    
+    Parameters
+    ----------
+    nom : Pandas series, optional
+        rolling year ending NOM (by quarter) by default None
+    """
+    if nom is None:
+        nom = get_nom()
+
+    nom_annual = nom.resample(quarter).sum()
+
+    # remove last year if not full year (ie nom last period == quarter parameter)
+    if nom.index[-1].strftime('%b') != quarter[-3:]:
+        nom_annual = nom_annual.iloc[:-1]
+
+    return nom_annual
 
 
 def check_max(df):
