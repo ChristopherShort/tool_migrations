@@ -278,7 +278,7 @@ def components_state_to_parquet(
     return components
 
 
-def components_substate_to_parquet(data_folder=DATA_ABS_PATH, fname=None):
+def components_sa2_to_parquet(data_folder=DATA_ABS_PATH, fname=None):
     """Create parquet file of 3218 SA2 level component data
     
     Parameters
