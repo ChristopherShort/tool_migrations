@@ -341,8 +341,10 @@ def components_sa2_to_parquet(data_folder=DATA_ABS_PATH, fname=None):
             "Area_km2",
             "population_density",
         ]
+
     col_names = replace_erp_year(col_names, fname)
     
+    # all 8 State and Territories in SA2 datasets
     table_sheet_range = range(1,9)
     
     df = (pd
@@ -378,6 +380,8 @@ def components_lga_to_parquet(data_folder=DATA_ABS_PATH, fname=None):
     ]
 
     col_names = replace_erp_year(col_names, fname)
+
+    # No ACT in LGA worksheet names - so only 7 data worksheets
     table_sheet_range = range(1,8)
     
     df = (pd
