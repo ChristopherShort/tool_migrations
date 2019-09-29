@@ -17,6 +17,7 @@ from pandasdmx import Request
 # Absolute paths
 DATA_FOLDER = Path.home() / "Documents/Analysis/Australian economy/Data/ABS/"
 DICT_FOLDER = Path.home() / "Documents/Analysis/Australian economy/Data/Dictionaries/"
+DATA_FOLDER_AUDIT = Path.home() / "Documents/Analysis/Australian economy/Data/ABS/ABS data audit"
 
 
 def get_downloads_page_url(url, allow_redirects=True):
@@ -281,8 +282,8 @@ def download_abs_file(url, xl_file_name, data_folder=DATA_FOLDER):
 
 
 def download_abs_catalog_excel_files(
-    cat_no="3101.0", url_cat_downloads_page=None, data_folder=DATA_FOLDER
-):
+    cat_no="3101.0", url_cat_downloads_page=None, download_folder=DATA_FOLDER_AUDIT
+    ):
     """
     Download all excel files associated with a given catalog number
     """
@@ -302,6 +303,8 @@ def download_abs_catalog_excel_files(
     # pattern to find excel links - eg 31010do003_200106.xls
     pat = r"log\?openagent&([^\.]+\.xls)"
 
+    Path.mkdir(download_folder, exist_ok=True)
+
     for entry in links_list:
         # each links_list class contains 1 or 2 links: when it's two,
         # it's for an excel and a zip file
@@ -311,14 +314,14 @@ def download_abs_catalog_excel_files(
             if file_search:
                 xl_file_name = file_search.group(1)
                 display(HTML(f'<a href="{link}">{entry.text}</a>, {xl_file_name}'))
-                download_abs_file(link, xl_file_name, data_folder)
+                download_abs_file(link, xl_file_name, download_folder)
                 time.sleep(2)
 
                 # if is_file_type_downloadable(link):
                 #     xl_file = session.get(link)
                 #     with open(data_folder / xl_file_name, 'wb') as output:
                 #         output.write(xl_file.content)
-                time.sleep(2)  # small break so as not to hammer ABS
+                time.sleep(1)  # small break so as not to hammer ABS
     return
 
 
@@ -389,6 +392,49 @@ def get_state_gccsa_dict(asgs=None):
     }
 
     return {**gccsa_state_dict, **other_caps_dict}
+
+
+def get_state_gccsa_dict(asgs=None):
+    if asgs is None:
+        asgs, asgs_mapper = ASGS_definitions()
+
+    gccsa_state_dict = (
+        asgs[["GCCSA_NAME_2016", "STATE_NAME_2016"]]
+        .drop_duplicates()
+        .set_index("GCCSA_NAME_2016")
+        .squeeze()
+        .to_dict()
+    )
+
+    other_caps_dict = {
+        "Sydney": "New South Wales",
+        "Melbourne": "Victoria",
+        "Brisbane": "Queensland",
+        "Adelaide": "South Australia",
+        "Perth": "Western Australia",
+        "Hobart": "Tasmania",
+        "Darwin": "Northern Territory",
+        "Canberra": "Australian Capital Territory",
+        "Total": "Total",
+        "total": "total",
+    }
+
+    return {**gccsa_state_dict, **other_caps_dict}
+
+
+def get_sa2_gccsa_dict(asgs=None):
+    if asgs is None:
+        asgs, asgs_mapper = ASGS_definitions()
+
+    sa2_state_dict = (
+        asgs[["SA2_NAME_2016", "STATE_NAME_2016"]]
+        .drop_duplicates()
+        .set_index("SA2_NAME_2016")
+        .squeeze()
+        .to_dict()
+    )
+
+    return sa2_state_dict
 
 
 def pop_component_definitions():
