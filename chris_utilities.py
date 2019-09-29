@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from IPython.core.display import HTML, display_html
 
 
-data_abs_path = Path(Path.home() / "Documents/Analysis/Australian economy/Data/ABS")
+DATA_ABS_PATH = Path(Path.home() / "Documents/Analysis/Australian economy/Data/ABS")
 
 
 def clean_column_names(df, other_text_to_remove="sector"):
