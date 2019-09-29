@@ -9,7 +9,7 @@ import pandas as pd
 # import matplotlib as mpl
 # from IPython.core.display import HTML, display_html
 
-from chris_utilities import read_abs_data, read_abs_meta_data
+from data import read_abs_data, read_abs_meta_data
 
 DATA_ABS_PATH = Path.home() / "Documents/Analysis/Australian economy/Data/ABS"
 
