@@ -318,6 +318,29 @@ def components_sa2_to_parquet(data_folder=DATA_ABS_PATH, fname=None):
         "population_density",
     ]
 
+    if "2016-17" in fname:
+        ### ABS has ERP delta and percent after nim, nom etc for 2016-17
+        col_names = [
+            "S_T_code",
+            "S_T_name",
+            "GCCSA_code",
+            "GCCSA_name", 
+            "SA4_code",
+            "SA4_name",
+            "SA3_code",
+            "SA3_name",
+            "SA2_code",
+            "SA2_name",
+            "ERP_first",
+            "ERP_second",
+            "natural_increase",
+            "NIM",
+            "NOM",
+            "erp_delta_percent",
+            "ERP_delta_levels",
+            "Area_km2",
+            "population_density",
+        ]
     col_names = replace_erp_year(col_names, fname)
     
     table_sheet_range = range(1,9)
