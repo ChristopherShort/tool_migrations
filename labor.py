@@ -6,7 +6,7 @@ import chris_utilities as cu
 
 # TODO automatically download the datacubes and convert
 
-DATA_FOLDER = Path.home() / "Documents/Analysis/Australian economy/Data/ABS/"
+DATA_ABS_PATH = Path.home() / "Documents/Analysis/Australian economy/Data/ABS/"
 
 
 def convert_lm7_excel_to_parquet(data_folder):
@@ -137,7 +137,7 @@ def convert_lm5_excel_to_parquet(data_folder):
     return df
 
 
-def read_lm5(data_folder=DATA_FOLDER, delete_unknown_COB=True, age_mapping=None):
+def read_lm5(data_folder=DATA_ABS_PATH, delete_unknown_COB=True, age_mapping=None):
     """[summary]
     
     Parameters
@@ -162,6 +162,17 @@ def read_lm5(data_folder=DATA_FOLDER, delete_unknown_COB=True, age_mapping=None)
         return set_age_groups(df, age_mapping=age_mapping)
 
 
+def read_lm7(data_folder=DATA_ABS_PATH):
+    """[summary]
+    
+    Parameters
+    ----------
+    data_folder : [type], optional
+        [description], by default DATA_ABS_PATH
+    """
+    return pd.read_parquet(DATA_ABS_PATH / "LM7.parquet")
+
+
 def remove_unknown_COB(df):
     """
     When estimating share of migrants, ABS removes those without country of birth
@@ -184,7 +195,29 @@ def remove_unknown_COB(df):
     return df
 
 
-def male_female_population(df=None, delete_unknown_COB=True):
+def lf_hierarchical(df=None):
+    """
+
+    
+    Parameters
+    ----------
+    df : [type], optional
+        [description], by default None
+    """
+
+    if df is None:
+        df = read_lm5()
+        df = set_age_groups(df)
+
+    return (
+        df.groupby(["date", "sex", "age", "COB"])["labour_force", "population"]
+        .sum()
+        .unstack(["COB", "sex", "age"])
+        .sort_index(axis="columns")
+    )
+
+
+def gender_population(df=None, delete_unknown_COB=True):
     """[summary]
     """
 
@@ -194,6 +227,39 @@ def male_female_population(df=None, delete_unknown_COB=True):
             df = remove_unknown_COB(df)
 
     return df.groupby(["date", "sex"])["labour_force", "population"].sum().unstack()
+
+
+def rename_col_index(df, label):
+    """rename level 0 of column indes to "label"
+    
+    Parameters
+    ----------
+    df : dataframe
+        labour force and population timeseries data
+    label : string
+        name of level 0 of multiindex
+    
+    Returns
+    -------
+    df
+        dataframe with column multiindex level 0 relabelled 
+    """
+    df.columns.names = [label] + df.columns.names[1:]
+    return df
+
+
+def cob_population(df=None, delete_unknown_COB=True):
+    """[summary]
+    """
+
+    if df is None:
+        df = read_lm5()
+        if delete_unknown_COB:
+            df = remove_unknown_COB(df)
+
+    return (
+        df.groupby(["date", "COB"])["labour_force", "population"].sum().unstack().pipe(rename_col_index, "lf_pop")
+    )
 
 
 def set_age_groups(df, age_mapping=None):
@@ -235,23 +301,155 @@ def set_age_groups(df, age_mapping=None):
     )
 
 
-def lf_hierarchical(df=None):
-    """
-
+## Australian born & migrant contribution to employment growth
+def LM7_organised(df=None, with_missing_COB=False, category="employed_total"):
+    """reate data frame of native born and migrant by tim ein Australia by mont
     
     Parameters
     ----------
-    df : [type], optional
-        [description], by default None
+    df : dataframe, optional
+        LM7 datacube, by default None
+    
+    Returns
+    -------
+    dataframe
+        dataframe with columns:
+        Born in Australia; Arrived within last 5 years; Arrived 5-9 years ago; 
+        Arrived 20 or more years ago; Arrived 15-19 years ago; Arrived 10-14 years ago
     """
 
     if df is None:
-        df = read_lm5()
-        df = set_age_groups(df)
+        df = read_lm7()
+        
+    
+    arrived_order = [
+        "Born in Australia",
+        "Arrived within last 5 years",
+        "Arrived 5-9 years ago",
+        "Arrived 10-14 years ago",
+        "Arrived 15-19 years ago",
+        "Arrived 20 or more years ago",
+    ]
+    
+    if with_missing_COB:
+        return (df
+            .groupby([df.index, 'elapsed_years_since_arrival'])[category]
+            .sum()
+            .unstack('elapsed_years_since_arrival')
+            .sort_index(axis=1, ascending=False)
+        )[col_order]
+    else:
+        return (df
+            .groupby([df.index, 'elapsed_years_since_arrival'])[category]
+            .sum()
+            .unstack('elapsed_years_since_arrival')
+            .drop(columns=['Not stated / Inadequately described / Born at sea'])
+            .sort_index(axis=1, ascending=False)
+            .reindex(labels=arrived_order, axis='columns')
+            .assign(total = lambda x: x.sum(axis='columns'))
+        )
 
-    return (
-        df.groupby(["date", "sex", "age", "COB"])["labour_force", "population"]
-        .sum()
-        .unstack(["COB", "sex", "age"])
-        .sort_index(axis="columns")
-    )
+
+def delta_by_duration(df=None, month=6, category="employed_total"):
+    print(category.replace("_", " ").capitalize())
+
+    if df is None:
+        df = LM7_organised(category=category)
+
+    if month:
+        idx = df.index.month == month
+        df = df[idx]
+        # as employed has annual year data
+        time_delta = 5
+    else:
+        # employed has monthly data
+        time_delta = 60
+
+
+    idx = ['Born in Australia', 'total' ]
+
+    delta = df[idx].diff(time_delta)
+
+
+    delta_order = ['Born in Australia',
+                'Arrived within last 5 years',
+                'arrived_more_than_5_years',
+                'total'
+                ]
+
+    delta = (pd
+                .concat([delta, df['Arrived within last 5 years']], axis='columns')
+                .assign(arrived_more_than_5_years = lambda x: x.total - x['Born in Australia'] - x['Arrived within last 5 years'])
+                .reindex(labels=delta_order, axis='columns')
+                .dropna()
+            )
+         
+
+    return delta
+
+
+def share_by_duration(delta=None, month=6, category="employed_total", as_int=False):
+
+    if delta is None:
+        delta = delta_by_duration(month=month, category=category)
+    
+    delta_share = delta.divide(delta.total, axis='rows') * 100
+    
+    if as_int:
+        return (delta_share
+            .dropna(axis='index', how='any')
+            .round(0)
+            .astype(int)
+        )
+    else:
+        return delta_share
+
+
+def make_c_by_duration(df=None, month=6):
+    """ Extract employment levels for Aus. born, and OS born by time in Australia
+    
+    Parameters:
+    -----------
+        df: the LM7 dataset (ie sheet: Data 1 from LM7 loaded in a dataframe)
+        month:integer or None
+            the month to use (eg 6 for financial) if doing annual calculations, if None then return all data
+        
+    Returns
+    -------
+        employed: pandas dataframe
+    """
+
+    if df is None:
+        df = read_lm7()
+
+    arrived_order = ['Born in Australia',
+                        'Arrived within last 5 years',
+                        'Arrived 5-9 years ago',
+                        'Arrived 10-14 years ago',
+                        'Arrived 15-19 years ago',
+                        'Arrived 20 or more years ago',
+                        'total'
+                    ]
+
+    # Remove unknown COB
+    idx = df.MESC != 'Not Stated / Inadequately Described / Born at sea'
+
+
+    employed = (df.loc[idx]
+                    .groupby(['date', 'elapsed_years_since_arrival'])['employed_total']
+                    .sum()
+                    .unstack('elapsed_years_since_arrival')
+                    .drop(columns=['Not stated / Inadequately described / Born at sea'])
+                    .sort_index(axis=1, ascending=False)
+                    .reindex(labels=arrived_order, axis='columns')
+                    .assign(total = lambda x: x.sum(axis='columns'))
+                    .rename_axis(None, axis='columns')
+        )
+
+    if month is None:
+        return employed
+    else:
+        idx = employed.index.month == month
+        return employed[idx]
+
+
