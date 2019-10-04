@@ -464,7 +464,7 @@ def plot_scatter(ax, prng, nb_samples=100):
     """
     for mu, sigma, marker in [(-0.5, 0.75, "o"), (0.75, 1.0, "s")]:
         x, y = prng.normal(loc=mu, scale=sigma, size=(2, nb_samples))
-        ax.plot(x, y, ls="none", marker=marker)
+        ax.plot(x, y, ls="none", marker=marker, markersize=3)
     ax.set_xlabel("X-label")
     return ax
 
@@ -572,7 +572,7 @@ def plot_figure(style_label=""):
     axes[0].set_ylabel(style_label)
 
     plot_scatter(axes[0], prng)
-    plot_image_and_patch(axes[1], prng)
+    # plot_image_and_patch(axes[1], prng)
     plot_bar_graphs(axes[2], prng)
     plot_colored_circles(axes[3], prng)
     plot_colored_sinusoidal_lines(axes[4])
