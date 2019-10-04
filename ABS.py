@@ -14,6 +14,7 @@ import numpy as np
 from pandasdmx import Request
 
 
+
 # Absolute paths
 DATA_FOLDER = Path.home() / "Documents/Analysis/Australian economy/Data/ABS/"
 DICT_FOLDER = Path.home() / "Documents/Analysis/Australian economy/Data/Dictionaries/"
@@ -422,19 +423,43 @@ def get_state_gccsa_dict(asgs=None):
     return {**gccsa_state_dict, **other_caps_dict}
 
 
-def get_sa2_gccsa_dict(asgs=None):
+def get_region_state_dict(region, asgs=None):
+    """create a dictionary mapping region asgsnames to state names
+    
+    Parameters
+    ----------
+    region : [type]
+        [description]
+    asgs : [type], optional
+        [description], by default None
+    """
     if asgs is None:
         asgs, asgs_mapper = ASGS_definitions()
 
-    sa2_state_dict = (
-        asgs[["SA2_NAME_2016", "STATE_NAME_2016"]]
+    geographies_3218 = ['AUS', 'GCCSA', 'SA2', 'SA3', 'SA4', 'STE']
+
+    if region.upper() not in geographies_3218:
+        raise ValueError(f"{region} not valid. Must be one of {geographies_3218}")
+
+    region = region.lower()
+    #TODO: implement check to confirm it belongs to 
+
+    region_dict = {
+        "sa2": "SA2_NAME_2016",
+        "sa3": "SA3_NAME_2016",
+        "sa4": "SA4_NAME_2016"
+    }
+
+    region_asgs_name = region_dict[region]
+    state_dict = (
+        asgs[[region_asgs_name, "STATE_NAME_2016"]]
         .drop_duplicates()
-        .set_index("SA2_NAME_2016")
+        .set_index(region_asgs_name)
         .squeeze()
         .to_dict()
     )
 
-    return sa2_state_dict
+    return state_dict
 
 
 def pop_component_definitions():
