@@ -14,8 +14,10 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import matplotlib as mpl
+
 import chris_utilities as cu
 import nom
+import ABS
 
 data_folder_ABS = Path.home() / 'Documents/Analysis/Australian economy/Data/ABS'
 data_folder_stock = Path.home() / 'Documents/Analysis/Australian economy/Data/Stock'
@@ -141,6 +143,7 @@ def n_year_growth_rate(df, year_start="2013", year_end = "2018"):
 def read_erp(data_folder=data_folder_ABS):
     return pd.read_parquet(data_folder / "3218.parquet")
 
+
 def get_state_order(other_territories=False):
     """[summary]
     
@@ -162,7 +165,6 @@ def get_state_order(other_territories=False):
     
 
 
-
 # def read_regional_nom_nim(data_folder=data_folder_ABS):
 
 
@@ -174,6 +176,40 @@ def national(erp=None):
     return (erp[idx][["date", "erp"]]
             .set_index("date")
             .rename(columns={"erp": "Australia"})
+    )
+
+
+def state_levels(erp=None, totals=True):
+    """Get state ERPs, including total
+    
+    Parameters
+    ----------
+    erp : [type], optional
+        [description], by default None
+    totals : bool, optional
+        [description], by default True
+    
+    Returns
+    -------
+    [type]
+        [description]
+    """
+
+    if erp is None:
+        erp = read_erp()
+    
+    def add_all(df, totals):
+        if totals:
+            return df[state_order]
+        else:
+            return df.drop(columns="total")[state_order]
+    
+    idx = (erp.regiontype == "STE")
+
+    return (erp[idx]
+            .pivot_table(index='date', columns='asgs_name', values='erp')
+            .assign(total = lambda x: x.sum(axis=1))
+            .pipe(add_all, totals)
     )
 
 
@@ -266,6 +302,27 @@ def SUA(data_folder=data_folder_ABS, fname = '32180ds0003_2008-18.xls', keep_asg
     return sua
 
 
+def sa_region(regiontype="SA4", erp=None):
+    if erp is None:
+        erp = read_erp()
+    
+
+def sa4(erp=None):
+    if erp is None:
+        erp = read_erp()
+    
+    idx = erp.regiontype == "SA4"
+
+    df = erp[idx].pivot_table(index='date', columns='asgs_name', values='erp')
+
+    # Add states to make multiindex
+    region_to_state = ABS.get_region_state_dict("sa4")
+    states = df.columns.map(region_to_state)
+    df.columns = pd.MultiIndex.from_arrays([states, df.columns])
+
+    return df[state_order]
+
+
 def SEQ():
     erp = read_erp()
 
@@ -340,6 +397,8 @@ def get_stock_data(fname="stock_today.parq",
 def population_by_age(data_folder=data_folder_ABS, fname="310105x.feather"):
     return pd.read_feather(data_folder / fname)
 
+
+### 
 
 ### NOM
 def get_nom(data_folder=data_folder_nom):
