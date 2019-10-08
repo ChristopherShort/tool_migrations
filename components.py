@@ -109,7 +109,7 @@ def component_shares_between_dates(df):
     print(f"Between {idx_erp_start:%Y-%m-%d} and {idx_erp_end:%Y-%m-%d}:\n")
 
     print(
-        f"Population increased {pop_delta * 1000:,.0f} ({pop_deta_pct_increase:.0%}) people.\n"
+        f"Population increased {pop_delta * 1000:,.0f} ({pop_deta_pct_increase:.1%}) people.\n"
     )
 
     print(
