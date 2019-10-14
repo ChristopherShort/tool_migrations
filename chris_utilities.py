@@ -4,10 +4,17 @@
 from pathlib import Path
 
 import pandas as pd
+import pandas.util.testing as tm
 import numpy as np
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+import matplotlib.gridspec as gridspec
+
 from IPython.core.display import HTML, display_html
+
+
 
 
 DATA_ABS_PATH = Path(Path.home() / "Documents/Analysis/Australian economy/Data/ABS")
@@ -230,7 +237,7 @@ def thousands(*axes, y=True):
 
 def write_y_axis_label(
     ax, text="missing", x_offset=0, y_offset=0.02, color="#808080", fontsize=8
-):
+    ):
 
     x_lhs = -x_offset
     x_rhs = 1 + x_offset
@@ -263,7 +270,7 @@ def write_y_axis_label(
 
 def set_fin_year_axis(
     ax, rotation=0, ha="center", end_of_fin_year=True, every_year=True
-):
+    ):
     """
     Parameters:
     -----------
@@ -438,9 +445,6 @@ def csnap(df, fn=lambda x: x.shape, msg=None):
     return df
 
 
-import pandas.util.testing as tm
-
-
 def makeTimeSeriesDataFrame():
     """
     Return a dataframe with monthly timeseries, defaults are 30 rows, 4 columns
@@ -567,35 +571,29 @@ def plot_figure(style_label=""):
     fig_size = [fig_width * 2, fig_height / 2]
 
     fig, axes = plt.subplots(
-        ncols=6, nrows=1, num=style_label, figsize=fig_size, squeeze=True
-    )
+        ncols=6, nrows=1, num=style_label, figsize=fig_size, squeeze=True, constrained_layout=True
+        )
+    
     axes[0].set_ylabel(style_label)
 
     plot_scatter(axes[0], prng)
-    # plot_image_and_patch(axes[1], prng)
+    plot_image_and_patch(axes[1], prng)
     plot_bar_graphs(axes[2], prng)
     plot_colored_circles(axes[3], prng)
     plot_colored_sinusoidal_lines(axes[4])
     plot_histograms(axes[5], prng)
 
-    fig.tight_layout()
-
     return fig
 
 
 def plot_sample_style(add_defaults=True, style_list=["default", "classic"]):
-    # Setup a list of all available styles, in alphabetical order but
-    # the `default` and `classic` ones, which will be forced resp. in
-    # first and second position.
-    # style_list = ['default', 'classic'] + sorted(
-    #     style for style in plt.style.available if style != 'classic')
 
     if add_defaults:
         style_list = ["default", "classic"] + sorted(style_list)
     else:
         style_list = sorted(style_list)
     #     style for style in plt.style.available if style != 'classic')
-
+    print(style_list)
     # Plot a demonstration figure for every available style sheet.
     for style_label in style_list:
         with plt.style.context(style_label):
@@ -604,3 +602,19 @@ def plot_sample_style(add_defaults=True, style_list=["default", "classic"]):
     plt.show()
 
     return fig
+
+
+def plot_color_bar():
+    # Also a constrained layout example
+    # https://matplotlib.org/3.1.1/tutorials/intermediate/constrainedlayout_guide.html
+    # For the pcolormesh kwargs (pc_kwargs) we use a dictionary.
+    # Below we will assign one colorbar to a number of axes each containing a ScalarMappable;
+    # specifying the norm and colormap ensures the colorbar is accurate for all the axes.
+
+    arr = np.arange(100).reshape((10, 10))
+    norm = mcolors.Normalize(vmin=0., vmax=100.)
+    # see note above: this makes all pcolormesh calls consistent:
+    pc_kwargs = {'rasterized': True, 'cmap': 'viridis', 'norm': norm}
+    fig, ax = plt.subplots(figsize=(4, 4), constrained_layout=True)
+    im = ax.pcolormesh(arr, **pc_kwargs)
+    fig.colorbar(im, ax=ax, shrink=0.6)
