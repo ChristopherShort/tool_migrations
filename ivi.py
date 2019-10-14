@@ -59,12 +59,21 @@ def read_vacancy(
     return pd.read_parquet(data_folder / fname)
 
 
+def QTB_para(df):
+    return (f"Internet Vacancy Index data shows that outside Sydney, Melbourne and Brisbane \
+there were around {round(df.iloc[-1,8],0):,.0f} job vacancies in {df.index[-1].month_name()} {df.index[-1].year}. \
+This is simlar to the {round(df.iloc[-2,8],0):,.0f} vacancies a year earlier, and an increase of \
+{(df.iloc[-1,8] / df.iloc[-3,8] - 1):.0%} per cent from around {round(df.iloc[-3,8],0):,.0f} two years ago. \
+This includes around {round(df.iloc[-1,9],0):,.0f} job vacancies in the regions outside all State and Territory capitals.\n"
+    )
+
+
 def regional_vacancies(
     vacancies=None,
     exclude_capitals=["Sydney", "Melbourne", "Brisbane"],
     ):
     """Vacancy dataframe with with states by dates
-    
+
     Parameters
     ----------
     vacancy : df
@@ -90,13 +99,20 @@ def regional_vacancies(
     idx_level = vacancies.level == 1
     idx_region = vacancies.region.isin(exclude_capitals)
 
+    total_excludes_string = "Total " + ", ".join(exclude_capitals)
+
     states = (vacancies[idx_level & ~idx_region]
                 .groupby(["date", "state", ])
                 .vacancies
                 .sum()
                 .unstack(["state", ])
-                .assign(Total = lambda x:x.sum(axis=1))
+                .assign(Total=lambda x: x.sum(axis=1))
+                # .rename(columns={"Total": total_excludes_string})
             )
+
+    # idx = states.columns.str.lower().str.contains("total")
+    # temp_col_order = COL_ORDER.copy().append(list(states.columns[idx]))
+    # print(COL_ORDER)
 
     return states[COL_ORDER]
 
@@ -188,9 +204,11 @@ def QTB_vacancy_table(vacancies=None, month=None):
     # Return year values for month of last entry
     if month is None:
         idx = df.index.month == df.index.month[-1]
+        print(QTB_para(df[idx]))
         return df[idx]
     elif isinstance(month, int):
         idx = df.index.month == month
+        print(QTB_para(df[idx]))
         return df[idx]
     else:
         return df
