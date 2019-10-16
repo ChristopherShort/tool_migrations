@@ -16,6 +16,31 @@ from matplotlib.patches import Patch
 
 from chris_utilities import adjust_chart
 
+base_data_folder = (Path.home() /
+                       'Documents' /
+                       'Analysis' /
+                       'Australian economy' /
+                       'Data'
+                    )
+
+
+abs_data_folder = (base_data_folder / 
+                   'ABS'
+                  )
+
+abs_nom_data_folder = (base_data_folder /
+                       'NOM unit record data' /
+                       'Traveller Characteristics Parquet'
+                      )
+
+individual_movements_folder =  base_data_folder / "NOM unit record data/NOM individual movements"
+
+forecasting_data_folder = Path("Data_forecasting")
+
+dict_data_folder = base_data_folder / "Dictionaries"
+
+
+
 ### Utilities to read in raw ABS data:
 
 def process_original_ABS_data(abs_original_data_folder, analysis_folder):
@@ -955,10 +980,10 @@ def plot_check_for_gaps(arrivals, departures, abs_grouping, label_top_10=None):
 
     return ax_arrivals, ax_departures
 
-
+individual_movements_folder
 ######### Retriving NOM data for analysis
-def get_NOM_final_preliminary(individual_movements_folder, arrival=True):
-    '''
+def get_NOM_final_preliminary(data_folder=individual_movements_folder, arrival=True):
+    """
     Return dataframe of monthly data by
 
     Parameters:
@@ -973,13 +998,12 @@ def get_NOM_final_preliminary(individual_movements_folder, arrival=True):
     Returns
     -------
     dataframe
-    '''
+    """
 
-    ## TODO: add checks that final and preliminary files are in individual_movements_folder
+    ## TODO: think about returning both arrivals and departures as a tidy datasset
 
-    final = pd.read_parquet(individual_movements_folder / 'NOM unique movement - final.parquet')
-    prelim = pd.read_parquet(individual_movements_folder /
-                                'NOM unique movement - preliminary.parquet')
+    final = pd.read_parquet(data_folder / "NOM unique movement - final.parquet")
+    prelim = pd.read_parquet(data_folder / "NOM unique movement - preliminary.parquet")
 
     if arrival:
         ## generalise with positive (>0) to accomodate propensity values, final NOM has 1, -1
