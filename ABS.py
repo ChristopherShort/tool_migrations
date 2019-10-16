@@ -16,9 +16,10 @@ from pandasdmx import Request
 
 
 # Absolute paths
-DATA_FOLDER = Path.home() / "Documents/Analysis/Australian economy/Data/ABS/"
+ABS_DATA_FOLDER = Path.home() / "Documents/Analysis/Australian economy/Data/ABS/"
 DICT_FOLDER = Path.home() / "Documents/Analysis/Australian economy/Data/Dictionaries/"
 DATA_FOLDER_AUDIT = Path.home() / "Documents/Analysis/Australian economy/Data/ABS/ABS data audit"
+ASGS_FOLDER = ABS_DATA_FOLDER / "ASGS"
 
 
 def get_downloads_page_url(url, allow_redirects=True):
@@ -48,7 +49,7 @@ def get_downloads_page_url(url, allow_redirects=True):
     return url_details_page[0]
 
 
-def download_file(first_url, data_folder=DATA_FOLDER):
+def download_file(first_url, data_folder=ABS_DATA_FOLDER):
     file_params = file_details(first_url)
     file_name = file_params["filename"]
     session = HTMLSession()
@@ -265,7 +266,7 @@ def make_year_date(df_index, is_calendar=True):
     return df_index
 
 
-def download_abs_file(url, xl_file_name, data_folder=DATA_FOLDER):
+def download_abs_file(url, xl_file_name, data_folder=ABS_DATA_FOLDER):
     """
     Download the excel file given by the url
     """
@@ -365,6 +366,15 @@ def ASGS_definitions(dict_folder=DICT_FOLDER):
     asgs_mapper = pd.concat(gen_make_code_mapper(code_2_name_dict, asgs))
 
     return asgs, asgs_mapper
+
+
+def ASGS_SUA_SA2(data_folder=ASGS_FOLDER):
+    """
+    """
+    SUA_SA2_FILENAME = "SA2_SUA_2016_AUST.csv"
+    df = pd.read_csv(data_folder / SUA_SA2_FILENAME)
+
+    return df
 
 
 def get_state_gccsa_dict(asgs=None):
