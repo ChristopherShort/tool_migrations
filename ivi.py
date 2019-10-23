@@ -60,6 +60,18 @@ def read_vacancy(
 
 
 def QTB_para(df):
+    """[summary]
+    #TODO - break out as variables the "round(df.iloc[-1,8],0):,.0f" to improve clarity
+    Parameters
+    ----------
+    df : [type]
+        [description]
+    
+    Returns
+    -------
+    [type]
+        [description]
+    """
     return (f"Internet Vacancy Index data shows that outside Sydney, Melbourne and Brisbane \
 there were around {round(df.iloc[-1,8],0):,.0f} job vacancies in {df.index[-1].month_name()} {df.index[-1].year}. \
 This is simlar to the {round(df.iloc[-2,8],0):,.0f} vacancies a year earlier, and an increase of \
@@ -71,6 +83,7 @@ This includes around {round(df.iloc[-1,9],0):,.0f} job vacancies in the regions 
 def regional_vacancies(
     vacancies=None,
     exclude_capitals=["Sydney", "Melbourne", "Brisbane"],
+    total_only=False
     ):
     """Vacancy dataframe with with states by dates
 
@@ -99,7 +112,7 @@ def regional_vacancies(
     idx_level = vacancies.level == 1
     idx_region = vacancies.region.isin(exclude_capitals)
 
-    total_excludes_string = "Total " + ", ".join(exclude_capitals)
+    total_excludes_string = "Total excludes " + ", ".join(exclude_capitals)
 
     states = (vacancies[idx_level & ~idx_region]
                 .groupby(["date", "state", ])
@@ -110,16 +123,20 @@ def regional_vacancies(
                 # .rename(columns={"Total": total_excludes_string})
             )
 
-    # idx = states.columns.str.lower().str.contains("total")
-    # temp_col_order = COL_ORDER.copy().append(list(states.columns[idx]))
-    # print(COL_ORDER)
-
-    return states[COL_ORDER]
+    if total_only:
+        return states.Total.rename(total_excludes_string)
+    else:
+        if "ACT" in states.columns:
+            return states[COL_ORDER].rename(columns={"Total": total_excludes_string})
+        else:
+            col_order_ex_ACT = [state_name for state_name in COL_ORDER if state_name != "ACT"]
+            return states[col_order_ex_ACT].rename(columns={"Total": total_excludes_string})
 
 
 def regional_vacancies_exclude_mainland_state_capitals(
     vacancies = None,
     exclude_capitals=["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth"],
+        total_only=True,
     ):
     """[summary]
     
@@ -138,16 +155,28 @@ def regional_vacancies_exclude_mainland_state_capitals(
     if vacancies is None:
             vacancies = read_vacancy()
 
-    return (regional_vacancies(vacancies, exclude_capitals)
-                .drop(columns=["Total"])
-                .sum(axis="columns")
-                .rename("Total (excludes mainland state capitals)")
-    )
+    states = regional_vacancies(vacancies, exclude_capitals, total_only)
+
+    return (states)
+    
+    # return (regional_vacancies(vacancies, exclude_capitals)
+    #             .drop(columns=["Total"])
+    #             .sum(axis="columns")
+    #             .rename("Total (excludes mainland state capitals)")
+    # )
+
+
+def regional_vacancies_exclude_all_capitals_(
+    exclude_capitals=["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth", "Hobart", "Darwin", "Canberra & ACT"],
+    total_only=True
+    ):
+    return regional_vacancies(exclude_capitals, total_only)
 
 
 def regional_vacancies_exclude_all_capitals(
     vacancies = None,
-    exclude_capitals=["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth", "Hobart", "Darwin", "Canberra"],
+    exclude_capitals=["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth", "Hobart", "Darwin", "Canberra & ACT"],
+    total_only=True
     ):
     """[summary]
     
@@ -166,11 +195,9 @@ def regional_vacancies_exclude_all_capitals(
     if vacancies is None:
             vacancies = read_vacancy()
 
-    return (regional_vacancies(vacancies, exclude_capitals)
-                .drop(columns=["Total"])
-                .sum(axis="columns")
-                .rename("Total (excludes all capitals)")
-    )
+    states = regional_vacancies(vacancies, exclude_capitals, total_only)
+
+    return(states)
 
 
 def QTB_vacancy_table(vacancies=None, month=None):
@@ -194,8 +221,8 @@ def QTB_vacancy_table(vacancies=None, month=None):
     df= (pd
             .concat(
                 [regional_vacancies(vacancies),
-                regional_vacancies_exclude_all_capitals(vacancies),
-                regional_vacancies_exclude_mainland_state_capitals(vacancies),
+                regional_vacancies_exclude_all_capitals(vacancies, total_only=True),
+                regional_vacancies_exclude_mainland_state_capitals(vacancies, total_only=True),
                 ],
                 axis="columns"
             )
@@ -272,3 +299,5 @@ def one_digit_anzsco(
     return df[COL_ORDER]
 
 
+def odyseus_data():
+    return QTB_vacancy_table(month="all")
