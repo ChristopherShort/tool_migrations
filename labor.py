@@ -137,6 +137,68 @@ def convert_lm5_excel_to_parquet(data_folder):
     return df
 
 
+def convert_lm1(data_folder=DATA_ABS_PATH):
+    """
+    Read in LM1.xlsx, clean and convert to parquet file
+
+    Parameters
+    ----------
+    data_folder: Path objectdd
+        expect f'{Path.home()}/Documents/Analysis/Australian economy/Data/ABS'
+
+    Returns
+    -------
+
+    TODO: automatically download latest LM5 file
+    """
+
+    col_names = {
+            "Month": "date",
+            "Sex": "sex",
+            "Age": "age_group",
+            "Social marital status": "social_marital_status",
+            "Greater capital city and rest of state (GCCSA): ASGS (2011)": "gccsa",
+            "Employed full-time ('000)": "employed_full_time",
+            "Employed part-time ('000)": "employed_part_time",
+            "Unemployed looked for full-time work ('000)": "unemployed_looked_full_time",
+            "Unemployed looked for only part-time work ('000)": "unemployed_looked_part_time_only",
+            "Not in the labour force (NILF) ('000)": "nilf",
+        }
+
+    idx_labor_force = [
+            "employed_full_time",
+            "employed_part_time",
+            "unemployed_looked_full_time",
+            "unemployed_looked_part_time_only",
+        ]
+    df = (pd
+        .read_excel(
+            DATA_ABS_PATH / "LM1.xlsx",
+            usecols="A:J",
+            sheet_name="Data 1",
+            skiprows=3,
+            parse_dates=[0],
+            infer_datetime_format=True,
+        )
+        .rename(columns=col_names)
+        .assign(date=lambda x: x.date + pd.offsets.MonthEnd(0))
+        .assign(employed_total=lambda x: x.employed_full_time + x.employed_part_time)
+        .assign(labor_force=lambda x: x[idx_labor_force].sum(axis=1))
+        .assign(population=lambda x: x.nilf + x.labor_force)
+        .assign(participation_rate=lambda x: x.labor_force.divide(x.population) * 100)
+        .set_index("date")
+    )
+
+
+    df.to_parquet(data_folder / "LM1.parquet")
+
+    return df
+
+
+def read_lm1(data_folder=DATA_ABS_PATH):
+    return pd.read_parquet(data_folder / "LM1.parquet")
+
+
 def read_lm5(data_folder=DATA_ABS_PATH, delete_unknown_COB=True, age_mapping=None):
     """[summary]
     
