@@ -244,22 +244,24 @@ def write_y_axis_label(
     y_lhs = 1 + y_offset
     y_rhs = 1 + y_offset
 
+    # left y axis
     ax.text(
         x_lhs,
         y_lhs,
         text,
-        horizontalalignment="right",
+        horizontalalignment="left",
         verticalalignment="bottom",
         transform=ax.transAxes,
         color=color,
         fontsize=fontsize,
     )
 
+    # right y axis
     ax.text(
         x_rhs,
         y_rhs,
         text,
-        horizontalalignment="left",
+        horizontalalignment="right",
         verticalalignment="bottom",
         transform=ax.transAxes,
         color=color,
