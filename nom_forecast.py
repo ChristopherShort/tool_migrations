@@ -382,7 +382,7 @@ def get_ABS_visa_grouping(file_path=None):
 
     return abs_3412
 
-def get_abs_3412_mapper(df_abs_3412):
+def get_abs_3412_mapper(df_abs_3412=None):
     '''
     Return a dictionary to map subclass strings to modified ABS groupings
 
@@ -398,6 +398,9 @@ def get_abs_3412_mapper(df_abs_3412):
     abs_3412_mapper
     '''
     #TODO: add in test that dataframe contains the expected columns
+
+    if df_abs_3412 is None:
+        df_abs_3412 = get_ABS_visa_grouping()
 
     idx = ['visa_subclass_code', 'migration_publication_category']
     abs_3412_mapper = df_abs_3412[idx].set_index('visa_subclass_code').squeeze()
