@@ -464,6 +464,11 @@ def makeTimeSeriesDataFrame():
 # Plot current style colors for white and dark backgrounds
 
 def plot_current_style_lines():
+    """Display the colors from the current prop_cycle, which is obtained from the rc parameters.
+    
+    Returns: 
+       fig
+    """
     prop_cycle = plt.rcParams['axes.prop_cycle']
     colors = prop_cycle.by_key()['color']
 
