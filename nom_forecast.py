@@ -174,13 +174,13 @@ def get_visa_code_descriptions(vsc_list):
     return dict_visa_code_descriptions
 
 
-def get_monthly(df, net_erp_effect, groupby=('Duration_movement_date', 'Visa_subclass')):
+def get_monthly(df, net_erp_effect, group_by=('Duration_movement_date', 'Visa_subclass')):
     '''
     Aggregate unit record NOM data to monthly by visa subclass
     '''
 
     summary = (df[df.net_erp_effect == net_erp_effect]
-               .groupby()
+               .groupby(group_by)
                .net_erp_effect
                .sum()
                .unstack()
