@@ -28,6 +28,7 @@ abs_data_folder = (base_data_folder /
                    'ABS'
                   )
 
+
 abs_nom_data_folder = (base_data_folder /
                        'NOM unit record data' /
                        'Traveller Characteristics Parquet'
@@ -349,6 +350,7 @@ def get_vsc_reference(file_path):
 
     return reference_visa_dict
 
+
 def get_ABS_visa_grouping(file_path=None):
     '''
     Return a dataframe with ABS visa groupings (in cat no. 3412) by subclass
@@ -381,6 +383,7 @@ def get_ABS_visa_grouping(file_path=None):
                     )
 
     return abs_3412
+
 
 def get_abs_3412_mapper(df_abs_3412=None):
     '''
@@ -446,6 +449,7 @@ def get_abs_3412_mapper(df_abs_3412=None):
                     )
 
     return abs_3412_mapper
+
 
 def get_ABS_3412_definitions(abs_3412_excel_path):
     '''
@@ -544,11 +548,13 @@ def adjust_chart(ax, ylim_min=None, do_thousands=False):
 
     return ax, ax2
 
+
 def commas(x, pos):
     # formatter function takes tick label and tick position - but position is
     # passed from FuncFormatter()
     # PEP 378 - format specifier for thousands separator
     return '{:,d}'.format(int(x))
+
 
 def thousands(*axes, y=True):
     comma_formatter = mpl.ticker.FuncFormatter(commas)
@@ -559,6 +565,7 @@ def thousands(*axes, y=True):
     else:
         for ax in axes:
             ax.xaxis.set_major_formatter(comma_formatter)
+
 
 def set_y_axis_min(vsc):
     '''
@@ -605,6 +612,7 @@ def plot_visa_group_stacked(df, group, legend=False):
 
     return fig, ax, ax2
 
+
 def plot_visa_group_line_2(df, group):
     fig, ax = plt.subplots()
 
@@ -633,6 +641,7 @@ def plot_visa_group_line_2(df, group):
     ax.set_xlabel('')
 
     return fig, ax, ax2
+
 
 def plot_visa_group_line_(df, group):
     ax = df.plot(legend=None)
@@ -665,6 +674,7 @@ def plot_visa_group_line_(df, group):
 
     return fig, ax, ax2
 
+
 def plot_visa_group_line(df, group):
     ax = df[group].plot(legend=None)
     fig = ax.get_figure()
@@ -695,6 +705,7 @@ def plot_visa_group_line(df, group):
     ax.set_xlabel('')
 
     return fig, ax, ax2
+
 
 def label_vsc(label_positions, ax, color=None):
     '''
@@ -738,6 +749,7 @@ def label_vsc(label_positions, ax, color=None):
         ax.text(x, y, col, color=color_) #fontsize=14,
 
     return None
+
 
 def label_vsc_stacked(label_positions, ax, color=None, left=True):
     '''
@@ -784,6 +796,7 @@ def label_vsc_stacked(label_positions, ax, color=None, left=True):
             ax.text(x, y, col, color=color_) #fontsize=14,
 
     return None
+
 
 def label_vsc_stacked_(label_positions, ax, color=None, left=True):
     '''
@@ -834,6 +847,7 @@ def label_vsc_stacked_(label_positions, ax, color=None, left=True):
 
     return None
 
+
 def plot_vsc_nom_charts(data, ax, ls='-', lw=3, colors=['C0, C1', 'C2'], legend=True):
     '''
     Plot a 12 month rolling window chart of nom, arrivals and departures
@@ -858,6 +872,7 @@ def plot_vsc_nom_charts(data, ax, ls='-', lw=3, colors=['C0, C1', 'C2'], legend=
         ax.legend(frameon=False, ncol=2)
 
     return ax, ax2
+
 
 def plot_visa_groups(df, visa_group, window=1, nom=False, vsc=None):
     '''
@@ -938,6 +953,7 @@ def plot_visa_groups(df, visa_group, window=1, nom=False, vsc=None):
 
     return fig, fig_axes
 
+
 def plot_check_for_gaps(arrivals, departures, abs_grouping, label_top_10=None):
     """
     Plot the visa subgroups of a given abs group to assess aggregation requirements
@@ -982,6 +998,7 @@ def plot_check_for_gaps(arrivals, departures, abs_grouping, label_top_10=None):
     ax_departures = plot_it(df, 'Deprtures')
 
     return ax_arrivals, ax_departures
+
 
 individual_movements_folder
 ######### Retriving NOM data for analysis
@@ -1031,6 +1048,7 @@ def get_NOM_final_preliminary(data_folder=individual_movements_folder, arrival=T
 
     return NOM
 
+
 def make_vsc_multiIndex(df, mapper):
     '''
     generate multiIndex by mapping vsc (column labels of df) via a dict
@@ -1075,6 +1093,7 @@ def make_vsc_multiIndex(df, mapper):
                  )
     return df.sort_index(axis=1)
 
+
 ######### Preparing NOM monthly forecasting data: Generators #######
 def gen_nom_files(data_folder, abs_visagroup_exists=False, nom_final=True):
     '''
@@ -1115,6 +1134,7 @@ def gen_nom_files(data_folder, abs_visagroup_exists=False, nom_final=True):
             if file_path.stem[-1] == 'p':
                 yield file_path
 
+
 def gen_nom_fields(file_paths, nom_fields, net_erp_effect=True):
     '''
         A generator to return DataFrames where NOM event triggered
@@ -1147,6 +1167,7 @@ def gen_nom_fields(file_paths, nom_fields, net_erp_effect=True):
         else:
             yield df
 
+
 def gen_get_visa_group(df_fields, vsc_list = None):
     ''''
     A generator to select the visa subclasses in vsc_list
@@ -1165,6 +1186,7 @@ def gen_get_visa_group(df_fields, vsc_list = None):
             yield df
         else:
             yield df.query('visa_subclass == @vsc_list')
+
 
 def get_nom_file_fields(data_folder, nom_fields, abs_visagroup_exists=False):
     '''
@@ -1202,6 +1224,7 @@ def get_nom_file_fields(data_folder, nom_fields, abs_visagroup_exists=False):
                .query('net_erp_effect != 0')
                .groupby(['visa_group', df.duration_movement_date.dt.year, 'visa_subclass'])['net_erp_effect'].sum()
                )
+
 
 def get_visa_groups(ABS_nom_group, vsc_list, nom_fields,
                     abs_nom_data_folder, individual_movements_folder,
@@ -1255,6 +1278,7 @@ def get_visa_groups(ABS_nom_group, vsc_list, nom_fields,
                   f'{ABS_nom_group} unique movement.parquet')
 
     return df
+
 
 def get_NOM_monthly(ABS_nom_group, individual_movements_folder, monthly_data_folder, df=None):
     '''
@@ -1325,6 +1349,7 @@ def get_NOM_monthly(ABS_nom_group, individual_movements_folder, monthly_data_fol
 
     return monthly
 
+
 def gen_abs_group_totals(df):
     '''
     A generator to add totals for abs groups to a tidy dataframe of arrivals or departures
@@ -1378,6 +1403,8 @@ def gen_abs_group_totals(df):
             .pipe(add_labels, 'nom', 'total')
             .reset_index() 
     )
+
+
 ### NOM (3101) analysis
 def plot_nom_delta(year_start, year_end, df, ascending=True, legend_display=True):
     '''
@@ -1499,6 +1526,7 @@ def plot_nom_delta(year_start, year_end, df, ascending=True, legend_display=True
 
     return nom_delta, fig, ax
 
+
 def check_max(df):
     '''
     Find max values time series passed in, compare to current period (the
@@ -1554,6 +1582,7 @@ def check_max(df):
 
     return df_max_period
 
+
 def check_min(df):
     '''
      Find minimum values for each time series in the dataframe, compare to current period (the
@@ -1606,11 +1635,13 @@ def check_min(df):
 
     return df_min_period
 
+
 def display_side_by_side(*args):
     html_str=''
     for df in args:
         html_str += df.to_html()
     display_html(html_str.replace('table','table style="display:inline"'),raw=True)
+
 
 ########################### Frorecast accuracy measures ##########################
 def gen_mase(history, forecast, forecast_start_period, seasonal=1):
@@ -1655,6 +1686,7 @@ def gen_mase(history, forecast, forecast_start_period, seasonal=1):
         
         yield mase.to_frame().T
 
+
 def make_vsc_first_character_lists():
     '''
     Generate: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'k', 'r', 'v', 'y'].
@@ -1687,6 +1719,7 @@ def make_vsc_first_character_lists():
         #     pass
 
     return vsc_description_first_char, vsc_description__not_first_char
+
 
 ########################### Utilities to check data as expected ####################
 def make_vsc_first_character_lists():
