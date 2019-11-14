@@ -30,6 +30,7 @@ abs_nom_data_folder = (base_data_folder /
                        'NOM unit record data' /
                        'Traveller Characteristics Parquet'
                       )
+grant_data_folder = base_data_folder / "Grant"
 individual_movements_folder =  base_data_folder / "NOM unit record data/NOM individual movements"
 dict_data_folder = base_data_folder / "Dictionaries"
 
