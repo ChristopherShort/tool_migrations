@@ -16,30 +16,26 @@ from matplotlib.patches import Patch
 
 from chris_utilities import adjust_chart
 
+# the data storage
 base_data_folder = (Path.home() /
                        'Documents' /
                        'Analysis' /
                        'Australian economy' /
                        'Data'
                     )
-
-
 abs_data_folder = (base_data_folder / 
                    'ABS'
                   )
-
-
 abs_nom_data_folder = (base_data_folder /
                        'NOM unit record data' /
                        'Traveller Characteristics Parquet'
                       )
-
 individual_movements_folder =  base_data_folder / "NOM unit record data/NOM individual movements"
-
-forecasting_data_folder = Path("Data_forecasting")
-
 dict_data_folder = base_data_folder / "Dictionaries"
 
+#local to current forecasting period folder
+forecasting_data_folder = Path("data/forecasting")
+forecasting_input_folder = forecasting_data_folder / "input"
 
 
 ### Utilities to read in raw ABS data:
@@ -995,7 +991,7 @@ def plot_check_for_gaps(arrivals, departures, abs_grouping, label_top_10=None):
 
     idx = departures.abs_grouping == abs_grouping
     df = departures[idx].groupby(['date','visa_label'])['count'].sum().unstack('visa_label').rolling(12).sum()
-    ax_departures = plot_it(df, 'Deprtures')
+    ax_departures = plot_it(df, 'Departures')
 
     return ax_arrivals, ax_departures
 
