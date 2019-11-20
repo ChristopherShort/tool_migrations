@@ -366,14 +366,7 @@ def get_ABS_visa_grouping(file_path=None):
     '''
 
     if file_path is None:
-        file_path = (Path.home() /
-                            'Documents' /
-                            'Analysis' /
-                            'Australian economy' /
-                            'Data' /
-                            'Dictionaries' /
-                            'ABS - Visacode3412mapping.xlsx'
-                            )
+        file_path = (dict_data_folder / 'ABS - Visacode3412mapping.xlsx')
 
     abs_3412 = (pd.read_excel(file_path)
                     .rename(columns=str.lower)
@@ -1405,7 +1398,7 @@ def gen_abs_group_totals(df):
     )
 
 
-def tidy_visa_subclas(df):
+def tidy__by_visa_subclass(df):
     """Convert the vsc by date returned from get_NOM_final_preliminary() to tidy data
 
     Arguments:
@@ -1413,8 +1406,15 @@ def tidy_visa_subclas(df):
     Returns:
         a tidy dataframe of nom by month, abs_group, visa_label, visa_subclass, nom
     """
+
+    #TODO should df be passed in a call to
+    #   get_NOM_final_preliminary with a direction parameter?
+    
+    reference_visa_dict = get_vsc_reference()
+    abs_3412_mapper = get_abs_3412_mapper()
+
     col_order = ["date", "abs_grouping", "visa_label", "visa_subclass", "nom"]
-    arrivals = (arrivals_all
+    tidy_df = (df
                 .unstack()
                 .rename("nom")
                 .reset_index()
@@ -1422,9 +1422,14 @@ def tidy_visa_subclas(df):
                 .assign(abs_grouping = lambda x: x.visa_subclass.map(abs_3412_mapper))
                 )
 
-    arrivals = arrivals[col_order]
-    idx = arrivals["nom"] == 0
-    arrivals = arrivals[~idx].reset_index(drop=True)
+    ### remove zero entries so contiguous data can be identified later,
+    idx = tidy_df["nom"] == 0
+
+    #TODO what sort order of the data should be returned?
+    return (tidy_df[~idx]
+        .reset_index(drop=True)
+        [col_order]
+    )
 
 ### NOM (3101) analysis
 def plot_nom_delta(year_start, year_end, df, ascending=True, legend_display=True):
