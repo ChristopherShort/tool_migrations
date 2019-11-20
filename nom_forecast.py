@@ -323,7 +323,7 @@ def append_nom_columns(df):
     return df
 
 # Dictionary utilities
-def get_vsc_reference(file_path):
+def get_vsc_reference(file_path=None):
     '''
     Return a dataframe containing definitions and groupings for visa subclasses
     The reference definitions and groupings is the sql table 'REF_VISA_SUBCLASS'
@@ -338,6 +338,9 @@ def get_vsc_reference(file_path):
     -------
     dataframe
     '''
+
+    if file_path == None:
+        file_path = dict_data_folder / 'REF_VISA_SUBCLASS.parquet'
 
     reference_visa_dict = (pd
                             .read_parquet(file_path)
@@ -1401,6 +1404,27 @@ def gen_abs_group_totals(df):
             .reset_index() 
     )
 
+
+def tidy_visa_subclas(df):
+    """Convert the vsc by date returned from get_NOM_final_preliminary() to tidy data
+
+    Arguments:
+        df {dataframe} -- with columns vsc and rows date
+    Returns:
+        a tidy dataframe of nom by month, abs_group, visa_label, visa_subclass, nom
+    """
+    col_order = ["date", "abs_grouping", "visa_label", "visa_subclass", "nom"]
+    arrivals = (arrivals_all
+                .unstack()
+                .rename("nom")
+                .reset_index()
+                .assign(visa_label = lambda x: x.visa_subclass.map(reference_visa_dict.visa_subclass_ds))
+                .assign(abs_grouping = lambda x: x.visa_subclass.map(abs_3412_mapper))
+                )
+
+    arrivals = arrivals[col_order]
+    idx = arrivals["nom"] == 0
+    arrivals = arrivals[~idx].reset_index(drop=True)
 
 ### NOM (3101) analysis
 def plot_nom_delta(year_start, year_end, df, ascending=True, legend_display=True):
