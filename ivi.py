@@ -74,7 +74,7 @@ def QTB_para(df):
     """
     return (f"Internet Vacancy Index data shows that outside Sydney, Melbourne and Brisbane \
 there were around {round(df.iloc[-1,8],0):,.0f} job vacancies in {df.index[-1].month_name()} {df.index[-1].year}. \
-This is simlar to the {round(df.iloc[-2,8],0):,.0f} vacancies a year earlier, and an increase of \
+This is similar to the {round(df.iloc[-2,8],0):,.0f} vacancies a year earlier, and an increase of \
 {(df.iloc[-1,8] / df.iloc[-3,8] - 1):.0%} per cent from around {round(df.iloc[-3,8],0):,.0f} two years ago. \
 This includes around {round(df.iloc[-1,9],0):,.0f} job vacancies in the regions outside all State and Territory capitals.\n"
     )
