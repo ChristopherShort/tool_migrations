@@ -18,7 +18,6 @@ from chris_utilities import adjust_chart
 
 # the data storage
 base_data_folder = (Path.home() /
-                       'Documents' /
                        'Analysis' /
                        'Australian economy' /
                        'Data'
@@ -33,6 +32,8 @@ abs_nom_data_folder = (base_data_folder /
 grant_data_folder = base_data_folder / "Grant"
 individual_movements_folder =  base_data_folder / "NOM unit record data/NOM individual movements"
 dict_data_folder = base_data_folder / "Dictionaries"
+dict_folder = Path(
+        '/Users/christopher/Documents/Analysis/Australian economy/Data/Visa/Dictionaries/')
 
 #local to current forecasting period folder
 forecasting_data_folder = Path("data/forecasting")
@@ -161,7 +162,7 @@ def get_visa_code_descriptions(vsc_list):
     '''
 
     dict_folder = Path(
-        '/Users/christopher/Documents/Analysis/Australian economy/Data/Visa/Dictionaries/')
+        '/Users/christopher/Analysis/Australian economy/Data/Visa/Dictionaries/')
 
     with open(dict_folder / 'dict_visa_code_descriptions.pickle', 'rb') as pickle_file:
         dict_visa_code_descriptions = pickle.load(pickle_file)

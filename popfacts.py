@@ -19,9 +19,9 @@ import chris_utilities as cu
 import nom
 import ABS
 
-data_folder_ABS = Path.home() / 'Documents/Analysis/Australian economy/Data/ABS'
-data_folder_stock = Path.home() / 'Documents/Analysis/Australian economy/Data/Stock'
-data_folder_nom = Path.home() / "Documents/Analysis/Australian economy/Data/NOM unit record data/Traveller Characteristics Parquet/"
+data_folder_ABS = Path.home() / 'Analysis/Australian economy/Data/ABS'
+data_folder_stock = Path.home() / 'Analysis/Australian economy/Data/Stock'
+data_folder_nom = Path.home() / "Analysis/Australian economy/Data/NOM unit record data/Traveller Characteristics Parquet/"
 
 capitals_names = {
     "Australian Capital Territory": "Canberra",

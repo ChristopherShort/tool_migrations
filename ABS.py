@@ -16,9 +16,9 @@ from pandasdmx import Request
 
 
 # Absolute paths
-ABS_DATA_FOLDER = Path.home() / "Documents/Analysis/Australian economy/Data/ABS/"
-DICT_FOLDER = Path.home() / "Documents/Analysis/Australian economy/Data/Dictionaries/"
-DATA_FOLDER_AUDIT = Path.home() / "Documents/Analysis/Australian economy/Data/ABS/ABS data audit"
+ABS_DATA_FOLDER = Path.home() / "Analysis/Australian economy/Data/ABS/"
+DICT_FOLDER = Path.home() / "Analysis/Australian economy/Data/Dictionaries/"
+DATA_FOLDER_AUDIT = Path.home() / "Analysis/Australian economy/Data/ABS/ABS data audit"
 ASGS_FOLDER = ABS_DATA_FOLDER / "ASGS"
 
 
