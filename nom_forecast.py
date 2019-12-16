@@ -22,9 +22,7 @@ base_data_folder = (Path.home() /
                        'Australian economy' /
                        'Data'
                     )
-abs_data_folder = (base_data_folder / 
-                   'ABS'
-                  )
+abs_data_folder = base_data_folder / "ABS"
 abs_nom_data_folder = (base_data_folder /
                        'NOM unit record data' /
                        'Traveller Characteristics Parquet'
@@ -34,6 +32,7 @@ individual_movements_folder =  base_data_folder / "NOM unit record data/NOM indi
 dict_data_folder = base_data_folder / "Dictionaries"
 dict_folder = Path(
         '/Users/christopher/Documents/Analysis/Australian economy/Data/Visa/Dictionaries/')
+program_data_folder = base_data_folder / "Visa"
 
 #local to current forecasting period folder
 forecasting_data_folder = Path("data/forecasting")
@@ -994,11 +993,10 @@ def plot_check_for_gaps(arrivals, departures, abs_grouping, label_top_10=None):
     return ax_arrivals, ax_departures
 
 
-individual_movements_folder
 ######### Retriving NOM data for analysis
 def get_NOM_final_preliminary(data_folder=individual_movements_folder, arrival=True):
     """
-    Return dataframe of monthly data by
+    Return dataframe of monthly data by visa subclass
 
     Parameters:
     ----------
