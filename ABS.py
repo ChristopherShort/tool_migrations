@@ -164,7 +164,7 @@ def make_true_hiearchical(df, index_names=None):
 
 def gen_ABS_3412(file_path, calendar=None):
     """
-    A generator to read in ABS Migration Australia data
+    A generator to read in ABS Migration Australia data from ABS 3412 excel workbooks
 
     Parameters:
     file_path: str or file path object
@@ -376,6 +376,53 @@ def ASGS_SUA_SA2(data_folder=ASGS_FOLDER):
 
     return df
 
+
+def state_by_geography(geography="SA2"):
+    """Generate dictionary of state by SA level (eg SA2, SA3, SA4)
+    
+    Keyword Arguments:
+        sa {str} -- Statistical Area Levels: SA1, SA2, SA3 or SA4 (default: {"SA2"})
+    
+    Returns:
+        dict -- a dictionary of state by names of the selected Statistical Area Level
+    """
+
+    main_geographies = ["SA1", "SA2", "SA3", "SA4", "GCCSA"]
+
+    acceptable_geographies = main_geographies
+    if geography.upper() not in acceptable_geographies:
+        raise ValueError(f"Input was {geography}, but must be a member of {','.join(acceptable_geographies)}")
+
+    if geography.upper() in main_geographies:
+        return _main_ASGS_geography(geography)
+    else:
+        raise ValueError ("Chris - note complete")
+
+
+def _main_ASGS_geography(geography):
+    """Return a dict of state by geography (SA2, SA3, SA4 or GCCSA)
+    
+    Arguments:
+        geography {str} -- ASGS main geography or GCCSA
+    
+    Returns:
+        dict -- mapping of states by the ASGS geography
+    """
+    geography_name = geography.upper() + "_NAME_2016"
+
+    asgs, _ = ASGS_definitions()
+    asgs = asgs.set_index("STATE_NAME_2016")
+
+    geography_dict = dict()
+    for state in asgs.index.unique():
+        geography_dict[state] = list(asgs.loc[state, geography_name].drop_duplicates().values)
+    
+    return geography_dict
+
+
+def _sua_sa2():
+    SUA_SA2_FILENAME = "SA2_SUA_2016_AUST.csv"
+    return pd.read_csv(ASGS_FOLDER / SUA_SA2_FILENAME)
 
 def get_state_gccsa_dict(asgs=None):
     if asgs is None:
