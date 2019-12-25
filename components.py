@@ -118,7 +118,7 @@ def component_shares_between_dates(df):
     return
 
 
-def annual_population_components(df, month=6):
+def annual_population_components(df=None, month=6):
     """
     TODO: read in 3101 rather than passing in as df
     
@@ -132,6 +132,9 @@ def annual_population_components(df, month=6):
     Returns:
     a dataframe
     """
+
+    if df is None:
+        df = read_3101()
 
     ERP = df[df.index.month == month].estimated_resident_population
 
