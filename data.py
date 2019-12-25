@@ -9,7 +9,7 @@ import pandas as pd
 import chris_utilities as cu
 
 
-DATA_ABS_PATH = Path.home() / "Documents/Analysis/Australian economy/Data/ABS"
+DATA_ABS_PATH = Path.home() / "Analysis/Australian economy/Data/ABS"
 
 capital_names = {"Greater Sydney": "Sydney",
                  "Greater Melbourne": "Melbourne",
@@ -225,7 +225,7 @@ def remove_note_references(df):
     pat = r"\.$"
     df.iloc[:, 0] = df.iloc[:, 0].str.replace(pat, "")
 
-    return df
+    return df   
 
 
 def components_state_to_parquet(
