@@ -27,7 +27,7 @@ def set_path_3412(fpath=None):
     # exept Path.hom()
 
     if fpath is None:
-        fpath = Path.home() / 'Documents' / 'Analysis' / 'Australian economy' / \
+        fpath = Path.home() / 'Analysis' / 'Australian economy' / \
             'Data' / 'Dictionaries' / 'ABS - Visacode3412mapping.xlsx'
     return fpath
 
