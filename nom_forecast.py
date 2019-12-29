@@ -1302,7 +1302,7 @@ def get_visa_groups(
 
     df_visa_group = gen_get_visa_group(df_with_fields, vsc_list)
 
-    # concatenate over teh generators
+    # concatenate over the generators
     df = pd.concat(df_visa_group, axis=0, ignore_index=True, sort=False).rename(
         {"duration_movement_date": "date"}, axis="columns"
     )
