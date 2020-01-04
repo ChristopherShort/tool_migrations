@@ -350,6 +350,43 @@ def append_nom_columns(df):
     return df
 
 
+def make_unique_movement_files(characteristcis_folder=abs_nom_data_parquet_folder, nom_final=True):
+    nom_fields = [
+        "person_id",
+        "duration_movement_date",
+        "visa_subclass",
+        "net_erp_effect",
+    ]
+
+
+    # establish the generators
+    get_file_paths = gen_nom_files(
+        characteristcis_folder,
+        abs_visagroup_exists=False,
+        nom_final=nom_final)
+
+    df_get_fields = gen_nom_fields(get_file_paths, nom_fields)
+    df_visa_group = gen_get_visa_group(df_get_fields, vsc_list=None)
+
+
+    # build the NOM dataframe
+    df = (pd.concat(df_visa_group, axis="index", ignore_index=True, sort=False)
+                    .rename({"duration_movement_date": "date"}, axis="columns")
+                    .sort_values(["date", "person_id"])
+                )
+    
+    if nom_final:
+        file_name = "NOM unique movement - final.parquet"
+    else:
+        file_name = "NOM unique movement - preliminary.parquet"
+
+    df.to_parquet(individual_movements_folder / file_name)
+
+    return df
+
+
+
+
 # Dictionary utilities
 def get_vsc_reference(file_path=None):
     """
@@ -856,7 +893,7 @@ def label_vsc_stacked_(label_positions, ax, color=None, left=True):
     return None
 
 
-def plot_vsc_nom_charts(data, ax, ls="-", lw=3, colors=["C0, C1", "C2"], legend=True):
+def plot_vsc_nom_charts(data, ax=None, ls="-", lw=1.75, colors=["C0", "C1", "C2"], legend=True):
     """
     Plot a 12 month rolling window chart of nom, arrivals and departures
 
@@ -864,22 +901,25 @@ def plot_vsc_nom_charts(data, ax, ls="-", lw=3, colors=["C0, C1", "C2"], legend=
     -----------
     data: data frame with 3 columns lablled arrivals, departures & nom
     """
-    chart_data = data.copy().rolling(12).sum().dropna()
+    if ax is None:
+        ax = plt.gca()
+
+    chart_data = data #.copy().rolling(12).sum().dropna()
 
     # work around for pandad datetime[ns] vs matplotlib datetime functionality
     # Meant to be resolved in Matplotlib 1.2.3 - but still fails for bar charts
-    chart_data.index = chart_data.index.date
+    # chart_data.index = chart_data.index.date
 
-    chart_data.arrivals.plot(ax=ax, linewidth=lw, linestyle=ls)
-    chart_data.departures.plot(ax=ax, linewidth=lw, linestyle=ls)
-    chart_data.nom.plot(ax=ax, linewidth=lw, linestyle=ls)
+    l1 = chart_data.arrivals.plot(ax=ax, linewidth=lw, linestyle=ls, color=colors[0])
+    l2 = chart_data.departures.plot(ax=ax, linewidth=lw, linestyle=ls, color=colors[1])
+    l3 = chart_data.nom.plot(ax=ax, linewidth=lw, linestyle=ls, color=colors[2])
 
     ax, ax2 = adjust_chart(ax, do_thousands=True)
 
     if legend:
-        ax.legend(frameon=False, ncol=2)
+        ax.legend(frameon=False, ncol=3)
 
-    return ax, ax2
+    return ax, ax2, l1, l2, l3
 
 
 def plot_visa_groups(df, visa_group, window=1, nom=False, vsc=None):
@@ -1065,7 +1105,7 @@ def get_NOM_final_preliminary(data_folder=individual_movements_folder, arrival=T
         idx_final = final.net_erp_effect < 0
         idx_prelim = prelim.net_erp_effect < 0
 
-    NOM = (
+    nom = (
         pd.concat([final[idx_final], prelim[idx_prelim]], axis="rows")
         .groupby(["date", "visa_subclass"])
         .net_erp_effect.sum()
@@ -1077,7 +1117,7 @@ def get_NOM_final_preliminary(data_folder=individual_movements_folder, arrival=T
         .astype(int)
     )
 
-    return NOM
+    return nom
 
 
 def make_vsc_multiIndex(df, mapper):
@@ -1120,6 +1160,48 @@ def make_vsc_multiIndex(df, mapper):
         zip(m_index.values, m_index.index), names=["abs_visa_group", "vsc"]
     )
     return df.sort_index(axis=1)
+
+
+def nom_year_ending(df):
+    """Generate a dataframe with multinidex columns given by variables 
+        abs_visa_group and direction, value is calculated as yearending
+    
+    Parameters
+    ----------
+    df : dataframe
+        contains 4 columns; date, abs_visa_group, direction, value
+        data is monthly
+
+    Returns
+    -------
+    a dataframe
+    """
+    df_ye = (df
+     .groupby(["date", "direction", "abs_visa_group"])
+     .value
+     .sum()
+     .unstack(("direction", "abs_visa_group", ))
+     .rolling(12)
+     .sum()
+     .dropna()
+     .assign(departures = lambda x: x.departures * -1)
+     .swaplevel(axis=1)
+     .sort_index(axis=1)
+    )
+
+    #calculate total nom
+    df_ye_nom = pd.concat([
+        df_ye.swaplevel(axis=1)["arrivals"].sum(axis=1).rename("arrivals"),
+        df_ye.swaplevel(axis=1)["departures"].sum(axis=1).rename("departures"),
+        df_ye.swaplevel(axis=1)["nom"].sum(axis=1).rename("nom"),
+        ],
+        axis=1
+    )
+    
+    df_ye_nom.columns = pd.MultiIndex.from_product([["nom"],["arrivals", "departures", "nom"]])
+
+    #join df_nom to df_ye
+    return pd.concat([df_ye, df_ye_nom], axis=1)
 
 
 ######### Preparing NOM monthly forecasting data: Generators #######
