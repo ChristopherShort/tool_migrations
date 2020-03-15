@@ -2,6 +2,7 @@
 File paths to data
 """
 
+from pathlib import Path
 
 # the data storage
 base_data_folder = Path.home() / "Analysis/Australian economy/Data"
