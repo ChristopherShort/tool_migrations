@@ -14,6 +14,8 @@ import matplotlib.gridspec as gridspec
 
 from IPython.core.display import HTML, display_html
 
+# import nom_forecast as nomf
+
 
 
 
@@ -429,6 +431,25 @@ def get_oecd_members():
     }
 
     return pd.Series(oecd_members, dtype="datetime64[ns]").sort_values()
+
+
+def get_program_outcomes(program_data_folder):
+    """Return Migration Program Outcomes and Humanitarian programs
+    """
+
+    pgm_outcomes = (pd
+         .read_excel(program_data_folder / "Permanent arrivals by year - APH.xlsx", 
+                     sheet_name="Home Affair data", 
+                     usecols="A:I", 
+                     index_col=0, 
+                     header=0, 
+                     parse_dates=True,
+                    ) 
+        .rename(columns={"All": "programs_total"})
+    )
+
+    return pgm_outcomes
+
 
 
 ############ Debugging utilies
