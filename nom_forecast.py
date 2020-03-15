@@ -15,16 +15,19 @@ from matplotlib.patches import Patch
 
 from chris_utilities import adjust_chart
 
+import file_paths
+
+
 # the data storage
-base_data_folder = Path.home() / "Analysis" / "Australian economy" / "Data"
-abs_data_folder = base_data_folder / "ABS"
-unit_record_folder = base_data_folder / "NOM unit record data"
-individual_movements_folder = unit_record_folder / "NOM individual movements"
-abs_nom_propensity = unit_record_folder / "ABS propensity"
-abs_nom_data_parquet_folder = unit_record_folder / "Traveller Characteristics Parquet"
-grant_data_folder = base_data_folder / "Grant"
-dict_data_folder = base_data_folder / "Dictionaries"
-program_data_folder = base_data_folder / "Visa"
+base_data_folder = file_paths.base_data_folder
+abs_data_folder = file_paths.abs_data_folder
+unit_record_folder = file_paths.unit_record_folder
+individual_movements_folder = file_paths.individual_movements_folder
+abs_nom_propensity = file_paths.abs_nom_propensity
+abs_nom_data_parquet_folder = file_paths.abs_nom_data_parquet_folder
+grant_data_folder = file_paths.grant_data_folder
+dict_data_folder = file_paths.dict_data_folder
+program_data_folder = file_paths.program_data_folder
 
 
 # local to current forecasting period folder
@@ -1090,7 +1093,8 @@ def get_NOM_final_preliminary(data_folder=individual_movements_folder, arrival=T
     -------
     dataframe
     """
-
+    # TODO: change arrival parameter from booleann to string: direction="arrival" as default, values to be "arrival", "departure", "nom"
+    # TODO: generalise to return with multiindex of abs visa group by vsc (ie call nomf.make_vsc_multiIndex)
     ## TODO: think about returning both arrivals and departures as a tidy datasset
 
     final = pd.read_parquet(data_folder / "NOM unique movement - final.parquet")
@@ -1120,7 +1124,7 @@ def get_NOM_final_preliminary(data_folder=individual_movements_folder, arrival=T
     return nom
 
 
-def make_vsc_multiIndex(df, mapper):
+def make_vsc_multiIndex(df, mapper=None):
     """
     generate multiIndex by mapping vsc (column labels of df) via a dict
 
@@ -1134,6 +1138,9 @@ def make_vsc_multiIndex(df, mapper):
     --------
     dataframe: original dataframe with multiIndex columns
     """
+
+    if mapper is None:
+        mapper = get_abs_3412_mapper()
 
     # check no unmapped visa subclasses
     # ie test whether every vsc element df.columns is in the mapper index

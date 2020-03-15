@@ -25,3 +25,7 @@ grant_data_folder = base_data_folder / "Grant"
 
 #visa_data
 program_data_folder = base_data_folder / "Visa"
+
+# Australian Statistical Geography Standard (ASGS)
+asgs_folder = abs_data_folder / "ASGS"
+shapely = asgs_folder / "shapely"
