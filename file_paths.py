@@ -19,7 +19,7 @@ stock_data_folder = base_data_folder / "Stock"
 unit_record_folder = base_data_folder / "NOM unit record data"
 individual_movements_folder = unit_record_folder / "NOM individual movements"
 abs_nom_propensity = unit_record_folder / "ABS propensity"
-abs_nom_data_parquet_folder = unit_record_folder / "Traveller Characteristics Parquet"
+abs_traveller_characteristics = unit_record_folder / "Traveller Characteristics Parquet"
 
 # Grant data
 grant_data_folder = base_data_folder / "Grant"
