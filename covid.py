@@ -93,6 +93,8 @@ def add_nom(df):
     --------
     df : extended with nom for each visa_group plus total nom
     """
+    # ensure no NOM elements
+    df = remove_nom_levels(df)
 
     ## Create nom for each visa grouop
     nom_monthly = df.swaplevel(axis=1).arrivals - df.swaplevel(axis=1).departures
