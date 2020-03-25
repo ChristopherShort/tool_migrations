@@ -138,3 +138,42 @@ def plot_scenario_comparison(df):
         _ = adjust_chart(ax)
 
         return fig, ax
+
+
+def get_comparison(nom, scenario):
+    """Creates a dataframe with nom and scenario by end of year values and difference
+    
+    Parameters
+    ----------
+    nom : dataframe
+        nom by date by (visa_group, direction)
+    scenario : dataframe
+        scenario by date by (visa_group, direction)
+
+    nom_nom_eoy = nom[("nom", "nom")].rolling(12).sum().dropna().rename("nom_original")
+    scenario_nom_eoy = scenario[("nom", "nom")].rolling(12).sum().dropna().rename("nom_scenario")
+
+    return (pd
+  .concat([nom_nom_eoy, scenario_nom_eoy], axis=1)
+  .dropna()
+  .assign(difference = lambda x:x.nom_original-x.nom_scenario)
+             )
+
+def get_nom(nom_forecast_filepath, grouping=["date", "abs_visa_group", "direction"]):
+    """Return current NOM forecast
+    
+    Parameters
+    ----------
+    nom_forecast_filepath : str/Path object
+        filepath to file containing tidy version of nom forecasts
+    grouping : list
+        variables to group the nom data by (usually [])
+    """
+
+    return (pd
+            .read_parquet("nom_new_covd_tidy.parquet")
+            .set_index(grouping)
+            .squeeze()
+            .unstack(grouping[1:])
+            .sort_index(axis=1)
+     )
