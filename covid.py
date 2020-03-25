@@ -1,7 +1,7 @@
 """
 Functions for managing covid scenarios for given NOM output.
 
-Scnearios can be done sequentially - by passing back in the adjusted scenario
+Designed so scnearios can be done sequentially - by piping through additional scenarios
 """
 
 import pandas as pd
@@ -149,15 +149,17 @@ def get_comparison(nom, scenario):
         nom by date by (visa_group, direction)
     scenario : dataframe
         scenario by date by (visa_group, direction)
+    """
 
     nom_nom_eoy = nom[("nom", "nom")].rolling(12).sum().dropna().rename("nom_original")
     scenario_nom_eoy = scenario[("nom", "nom")].rolling(12).sum().dropna().rename("nom_scenario")
 
     return (pd
-  .concat([nom_nom_eoy, scenario_nom_eoy], axis=1)
-  .dropna()
-  .assign(difference = lambda x:x.nom_original-x.nom_scenario)
-             )
+        .concat([nom_nom_eoy, scenario_nom_eoy], axis=1)
+        .dropna()
+        .assign(difference = lambda x:x.nom_original-x.nom_scenario)
+                    )
+
 
 def get_nom(nom_forecast_filepath, grouping=["date", "abs_visa_group", "direction"]):
     """Return current NOM forecast
