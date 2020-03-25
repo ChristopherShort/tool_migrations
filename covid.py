@@ -140,22 +140,22 @@ def plot_scenario_comparison(df):
         return fig, ax
 
 
-def get_comparison(nom, scenario):
-    """Creates a dataframe with nom and scenario by end of year values and difference
+def get_comparison(forecast, scenario):
+    """Creates a dataframe with nom end of year values from the dataframes and calculates difference
     
     Parameters
     ----------
-    nom : dataframe
+    forecast : dataframe
         nom by date by (visa_group, direction)
     scenario : dataframe
         scenario by date by (visa_group, direction)
     """
-
-    nom_nom_eoy = nom[("nom", "nom")].rolling(12).sum().dropna().rename("nom_original")
+    # create rolling end of year nom from each dataframe
+    forecast_nom_eoy = forecast[("nom", "nom")].rolling(12).sum().dropna().rename("nom_original")
     scenario_nom_eoy = scenario[("nom", "nom")].rolling(12).sum().dropna().rename("nom_scenario")
 
     return (pd
-        .concat([nom_nom_eoy, scenario_nom_eoy], axis=1)
+        .concat([forecast_nom_eoy, scenario_nom_eoy], axis=1)
         .dropna()
         .assign(difference = lambda x:x.nom_original-x.nom_scenario)
                     )
