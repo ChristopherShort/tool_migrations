@@ -127,7 +127,7 @@ def plot_scenario_comparison(df):
         # TODO: improve chart layout 
         fig, ax = plt.subplots()
 
-        if df.min().min() >= -1:
+        if df.min().min() >= -1: ### account for digit maths having very small negative numbers
             ylim = [0, None]
         else:
             ylim = [None, None]
