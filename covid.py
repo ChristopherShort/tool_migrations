@@ -127,7 +127,7 @@ def plot_scenario_comparison(df):
         # TODO: improve chart layout 
         fig, ax = plt.subplots()
 
-        if df.min().min() > 0:
+        if df.min().min() >= -1:
             ylim = [0, None]
         else:
             ylim = [None, None]
