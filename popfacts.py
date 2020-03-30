@@ -401,13 +401,14 @@ def population_by_age(data_folder=data_folder_ABS, fname="310105x.feather"):
 ### 
 
 ### NOM
-def get_nom(data_folder=data_folder_nom):
-    nom_fields = [
-        'person_id',
-        'duration_movement_date',
-        'visa_subclass',
-        'net_erp_effect',
-        'age'
+def get_nom(data_folder=data_folder_nom, nom_fields=None):
+    if nom_fields is None:
+        nom_fields = [
+            "person_id",
+            "duration_movement_date",
+            "visa_subclass",
+            "net_erp_effect",
+            "age"
     ]
 
 
