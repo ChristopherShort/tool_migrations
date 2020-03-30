@@ -6,7 +6,7 @@ import chris_utilities as cu
 
 # TODO automatically download the datacubes and convert
 
-DATA_ABS_PATH = Path.home() / "Documents/Analysis/Australian economy/Data/ABS/"
+DATA_ABS_PATH = Path.home() / "Analysis/Australian economy/Data/ABS/"
 
 
 def convert_lm7_excel_to_parquet(data_folder):
@@ -215,8 +215,10 @@ def read_lm5(data_folder=DATA_ABS_PATH, delete_unknown_COB=True, age_mapping=Non
     df = pd.read_parquet(data_folder / "LM5.parquet")
 
     if delete_unknown_COB:
+        # Work around for COB being a category variable
+        # TODO figure out how run "remove_unknown" containing category variables
+        df["COB"] = df["COB"].astype("string")
         df = remove_unknown_COB(df)
-
 
     if age_mapping is None:
         return df
