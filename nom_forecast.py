@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 
+
 from IPython.display import display_html, display
 
 from matplotlib.patches import Patch
@@ -1209,6 +1210,80 @@ def nom_year_ending(df):
 
     #join df_nom to df_ye
     return pd.concat([df_ye, df_ye_nom], axis=1)
+
+
+def add_nom(df):
+    """
+    add nom to each visa group and append a total nom visagroup to the dataframe
+    
+    Parameters:
+    -----------
+    df : dataframe
+    A nom dataframe with multiindex columns of visa_group by (arrivals, departures) - but no nom elements
+    
+    Returns:
+    --------
+    df : extended with nom for each visa_group plus total nom
+    """
+    # ensure no NOM elements
+    df = remove_nom_levels(df)
+
+    ## Create nom for each visa grouop
+    nom_monthly = df.swaplevel(axis=1).arrivals - df.swaplevel(axis=1).departures
+    nom_monthly.columns = pd.MultiIndex.from_product([nom_monthly.columns, ["nom"]])
+    df = pd.concat([df, nom_monthly], axis=1).sort_index(axis=1)
+
+    ## Create nom total
+    nom_total_monthly = df.sum(axis=1, level=1)
+    nom_total_monthly.columns = (pd
+        .MultiIndex
+        .from_product([["nom"], nom_total_monthly.columns])
+    )
+
+    return pd.concat([df, nom_total_monthly], axis=1)
+
+
+def remove_nom_levels(df):
+    """remove nom values at both level 0 (visa_group) and level 1(direction)
+    
+    Parameters
+    ----------
+    df : dataframe
+        a NOM dataframe with multiindex columns ("abs_visa_group", "direction") by dates 
+    
+    """
+
+    # TODO: check names of passed array - "abs_visa_group" & "direction"
+
+    # remove the "nom total" group
+    if "nom" in df.columns.get_level_values(level=0):
+        df = df.drop(["nom"], axis=1, level=0)
+    
+    # remove nom for all visa groups
+    if "nom"in df.columns.get_level_values(level=1):
+        df = df.drop(["nom"], axis=1, level=1)
+    
+    return df
+
+
+def get_nom_forecast(nom_forecast_filepath, grouping=["date", "abs_visa_group", "direction"]):
+    """Return current NOM forecast
+    
+    Parameters
+    ----------
+    nom_forecast_filepath : str/Path object
+        filepath to file containing tidy version of nom forecasts
+    grouping : list
+        variables to group the nom data by (usually [])
+    """
+
+    return (pd
+            .read_parquet("nom_new_covd_tidy.parquet")
+            .set_index(grouping)
+            .squeeze()
+            .unstack(grouping[1:])
+            .sort_index(axis=1)
+     )
 
 
 ######### Preparing NOM monthly forecasting data: Generators #######
