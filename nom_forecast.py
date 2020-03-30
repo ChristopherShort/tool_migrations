@@ -24,7 +24,7 @@ abs_data_folder = file_paths.abs_data_folder
 unit_record_folder = file_paths.unit_record_folder
 individual_movements_folder = file_paths.individual_movements_folder
 abs_nom_propensity = file_paths.abs_nom_propensity
-abs_nom_data_parquet_folder = file_paths.abs_nom_data_parquet_folder
+abs_traveller_characteristics_folder = file_paths.abs_traveller_characteristics
 grant_data_folder = file_paths.grant_data_folder
 dict_data_folder = file_paths.dict_data_folder
 program_data_folder = file_paths.program_data_folder
@@ -206,7 +206,7 @@ def get_visa_code_descriptions(vsc_list):
 
 def get_monthly(
     df, net_erp_effect, group_by=("Duration_movement_date", "Visa_subclass")
-):
+    ):
     """
     Aggregate unit record NOM data to monthly by visa subclass
     """
@@ -353,7 +353,7 @@ def append_nom_columns(df):
     return df
 
 
-def make_unique_movement_files(characteristcis_folder=abs_nom_data_parquet_folder, nom_final=True):
+def make_unique_movement_files(characteristcis_folder=abs_traveller_characteristics_folder, nom_final=True):
     nom_fields = [
         "person_id",
         "duration_movement_date",
@@ -1904,6 +1904,33 @@ def make_vsc_first_character_lists():
 
     return vsc_description_first_char, vsc_description__not_first_char
 
+
+########################### Utilities for aggregating csv forecast files ##########################
+def add_nom(df):
+    '''
+    add nom for each visa group and a total nom (with arrivals, departures and non)
+    
+    Parameters:
+    -----------
+    df: a dataframe with multiindex columns of visa_group by (arrivals, departures)
+    
+    Returns
+    -------:
+    df: extended with nom for each visa_group plus total nom
+    '''
+
+
+    ## Create nom for each visa grouop
+    nom_monthly = df.swaplevel(axis=1).arrivals - df.swaplevel(axis=1).departures
+    nom_monthly.columns = pd.MultiIndex.from_product([nom_monthly.columns, ["nom"]])
+    df = pd.concat([df, nom_monthly], axis=1).sort_index(axis=1)
+    
+
+    ## Create nom total
+    nom_total_monthly = df.sum(axis=1, level=1)
+    nom_total_monthly.columns = pd.MultiIndex.from_product([["nom"], nom_total_monthly.columns])
+
+    return pd.concat([df, nom_total_monthly], axis=1)
 
 ########################### Utilities to check data as expected ####################
 def make_vsc_first_character_lists():
