@@ -7,6 +7,7 @@ Designed so scnearios can be done sequentially - by piping through additional sc
 import pandas as pd
 import matplotlib as mpl
 from matplotlib import pyplot as plt
+import calendar
 
 from nom_forecast import remove_nom_levels, add_nom, get_nom_forecast
 from chris_utilities import adjust_chart
@@ -58,8 +59,10 @@ def make_scenario(df, start, stop, adjusted_visas, percentage_change=100):
     return df
 
 
-def plot_scenario_comparison(df):
-        """plot scenario against comparison
+def plot_scenario_comparison(df, scenario_name, month="June"):
+        """display comparison nom comparison, 
+           place comparsion in clipboard
+           plot scenario against comparison
         
         Parameters
         ----------
@@ -71,7 +74,29 @@ def plot_scenario_comparison(df):
         fig, ax objects of chart
         """
         # TODO: check df has two columns and monthly dates
-        # TODO: improve chart layout 
+        # TODO: improve chart layout
+        
+        #
+        
+        # show NOM scenario comparison
+
+        cal_month = dict((v, k) for k, v in enumerate(calendar.month_name))
+
+        if month not in calendar.month_name:
+            raise ValueError(f'{month} is not the name of a capitalized month, eg "June"')
+    
+        # for k, v in cal_month.items():
+        #     print(k,v)
+        #     cal_month = dict((v, k) for k, v in enumerate(calendar.month_name))
+
+        # print(cal_month[month])
+
+        idx = df.index.month == cal_month[month]
+
+        print("Calendar year differences")
+        display(df[idx]["2019":"2022"])
+        df[idx]["2019":"2022"].assign(scenario = scenario_name).to_clipboard()
+        
         fig, ax = plt.subplots()
 
         if df.min().min() >= -1: ### account for digit maths having very small negative numbers
@@ -97,6 +122,7 @@ def get_comparison(forecast, scenario):
     scenario : dataframe
         scenario by date by (visa_group, direction)
     """
+
     # create rolling end of year nom from each dataframe
     forecast_nom_eoy = forecast[("nom", "nom")].rolling(12).sum().dropna().rename("nom_original")
     scenario_nom_eoy = scenario[("nom", "nom")].rolling(12).sum().dropna().rename("nom_scenario")
@@ -106,3 +132,4 @@ def get_comparison(forecast, scenario):
         .dropna()
         .assign(difference = lambda x:x.nom_original-x.nom_scenario)
                     )
+
