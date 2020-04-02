@@ -274,7 +274,7 @@ def lf_hierarchical(df=None):
         df = set_age_groups(df)
 
     return (
-        df.groupby(["date", "sex", "age", "COB"])["labour_force", "population"]
+        df.groupby(["date", "sex", "age", "COB"])[["labour_force", "population"]]
         .sum()
         .unstack(["COB", "sex", "age"])
         .sort_index(axis="columns")
