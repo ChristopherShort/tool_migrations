@@ -1278,7 +1278,7 @@ def get_nom_forecast(nom_forecast_filepath, grouping=["date", "abs_visa_group", 
     """
 
     return (pd
-            .read_parquet("nom_new_covd_tidy.parquet")
+            .read_parquet(nom_forecast_filepath)
             .set_index(grouping)
             .squeeze()
             .unstack(grouping[1:])
