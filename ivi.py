@@ -4,20 +4,63 @@ http:lmip.gov.au
 
 from pathlib import Path
 import pandas as pd
+import re
+import requests
 from requests_html import HTMLSession
 
 import chris_utilities as cu
 
-DATA_FOLDER_VACANCY = Path.home() / "Documents/Analysis/Australian economy/Data/internet_vacancy"
+DATA_FOLDER_VACANCY = Path.home() / "Analysis/Australian economy/Data/internet_vacancy"
+# DATA_FOLDER_VACANCY = Path(".")
+
+EXCEL_FILE_NAME = "IVI_DATA_regional - May 2010 onwards"
 
 COL_ORDER = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT", "Total"]
 
-def download_vacancy_file():
-    session = HTMLSession()
-    r = session.get("http://lmip.gov.au/default.aspx?LMIP/VacancyReport")
+def is_file_type_downloadable(url):
+    """
+    Check if the content type is an excel file
 
-    if "http://lmip.gov.au/PortalFile.axd?FieldID=2790180&.xlsx" in r.html.absolute_links:
+    Do this by looking in the content_type of the header
+    """
+
+    h = requests.head(url, allow_redirects=True)
+    header = h.headers
+    content_type = header.get("content-type")
+
+    if content_type.lower() in ["application/vnd.ms-excel", "application/x-zip", "octet-stream"]:
         return True
+    return False
+
+
+def download_vacancy_file():
+    """Download "IVI_DATA_regional - May 2010 onwards.xlsx" from Employment's Labour Market 
+    Information Portal
+    
+    #TODO Add error checking
+    #TODO get/check excel file parameters at URL to confirm it is latest version 
+            (ie - covers upto current month)
+    #TODO fix returned "downloaded" & "failed" to proper returns as part of proper error checking
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+    url_lmip = "http://lmip.gov.au/default.aspx?LMIP/VacancyReport"
+    url_regional_data = "http://lmip.gov.au/PortalFile.axd?FieldID=2790180&.xlsx"
+    
+    session = HTMLSession()
+    r = session.get(url_lmip)
+
+    if url_regional_data in r.html.absolute_links:
+        if is_file_type_downloadable(url_regional_data):
+            xl_file = session.get(url_regional_data)
+            with open(DATA_FOLDER_VACANCY / f"{EXCEL_FILE_NAME}.xlsx", "wb") as output:
+                output.write(xl_file.content)
+            return "downloaded"
+        else:
+            return "Failed - talk to chris"
     else:
         return False
 
@@ -25,9 +68,8 @@ def download_vacancy_file():
 def make_vacancy_parquet(
     data_folder=DATA_FOLDER_VACANCY,
     fname="IVI_DATA_regional - May 2010 onwards.xlsx",
-    sheetname = "Averaged",
-    ):
-
+    sheetname="Averaged",
+):
     def tidyup(df):
         df.columns = df.columns.rename("date")
         df = df.stack()
@@ -35,16 +77,15 @@ def make_vacancy_parquet(
         df = cu.clean_column_names(df.reset_index())
         return df
 
-    fpath = data_folder/ fname
-    df= (pd
-              .read_excel(fpath, 
-                      sheet_name=sheetname,
-                      index_col=[0,1,2,3,4]
-                     )
-              .pipe(tidyup)
-              .assign(anzsco_code=lambda x: x.anzsco_code.astype(str))
-              .assign(date = lambda x:x.date + pd.offsets.MonthEnd(0))
-           )
+    # download_vacancy_file()
+
+    fpath = data_folder / fname
+    df = (
+        pd.read_excel(fpath, sheet_name=sheetname, index_col=[0, 1, 2, 3, 4])
+        .pipe(tidyup)
+        .assign(anzsco_code=lambda x: x.anzsco_code.astype(str))
+        .assign(date=lambda x: x.date + pd.offsets.MonthEnd(0))
+    )
 
     df.to_parquet(fpath.parent / f"{fpath.stem}.parquet")
 
@@ -54,7 +95,7 @@ def make_vacancy_parquet(
 def read_vacancy(
     data_folder=DATA_FOLDER_VACANCY,
     fname="IVI_DATA_regional - May 2010 onwards.parquet",
-    ):
+):
 
     return pd.read_parquet(data_folder / fname)
 
@@ -72,19 +113,18 @@ def QTB_para(df):
     [type]
         [description]
     """
-    return (f"Internet Vacancy Index data shows that outside Sydney, Melbourne and Brisbane \
+    return f"Internet Vacancy Index data shows that outside Sydney, Melbourne and Brisbane \
 there were around {round(df.iloc[-1,8],0):,.0f} job vacancies in {df.index[-1].month_name()} {df.index[-1].year}. \
 This is similar to the {round(df.iloc[-2,8],0):,.0f} vacancies a year earlier, and an increase of \
 {(df.iloc[-1,8] / df.iloc[-3,8] - 1):.0%} per cent from around {round(df.iloc[-3,8],0):,.0f} two years ago. \
 This includes around {round(df.iloc[-1,9],0):,.0f} job vacancies in the regions outside all State and Territory capitals.\n"
-    )
 
 
 def regional_vacancies(
     vacancies=None,
     exclude_capitals=["Sydney", "Melbourne", "Brisbane"],
-    total_only=False
-    ):
+    total_only=False,
+):
     """Vacancy dataframe with with states by dates
 
     Parameters
@@ -107,21 +147,21 @@ def regional_vacancies(
     3 = Total for Region by 2 digit ANZCO
     """
     if vacancies is None:
-            vacancies = read_vacancy()
-    
+        vacancies = read_vacancy()
+
     idx_level = vacancies.level == 1
     idx_region = vacancies.region.isin(exclude_capitals)
 
     total_excludes_string = "Total excludes " + ", ".join(exclude_capitals)
 
-    states = (vacancies[idx_level & ~idx_region]
-                .groupby(["date", "state", ])
-                .vacancies
-                .sum()
-                .unstack(["state", ])
-                .assign(Total=lambda x: x.sum(axis=1))
-                # .rename(columns={"Total": total_excludes_string})
-            )
+    states = (
+        vacancies[idx_level & ~idx_region]
+        .groupby(["date", "state",])
+        .vacancies.sum()
+        .unstack(["state",])
+        .assign(Total=lambda x: x.sum(axis=1))
+        # .rename(columns={"Total": total_excludes_string})
+    )
 
     if total_only:
         return states.Total.rename(total_excludes_string)
@@ -129,15 +169,19 @@ def regional_vacancies(
         if "ACT" in states.columns:
             return states[COL_ORDER].rename(columns={"Total": total_excludes_string})
         else:
-            col_order_ex_ACT = [state_name for state_name in COL_ORDER if state_name != "ACT"]
-            return states[col_order_ex_ACT].rename(columns={"Total": total_excludes_string})
+            col_order_ex_ACT = [
+                state_name for state_name in COL_ORDER if state_name != "ACT"
+            ]
+            return states[col_order_ex_ACT].rename(
+                columns={"Total": total_excludes_string}
+            )
 
 
 def regional_vacancies_exclude_mainland_state_capitals(
-    vacancies = None,
+    vacancies=None,
     exclude_capitals=["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth"],
-        total_only=True,
-    ):
+    total_only=True,
+):
     """[summary]
     
     Parameters
@@ -153,12 +197,12 @@ def regional_vacancies_exclude_mainland_state_capitals(
         [description]
     """
     if vacancies is None:
-            vacancies = read_vacancy()
+        vacancies = read_vacancy()
 
     states = regional_vacancies(vacancies, exclude_capitals, total_only)
 
-    return (states)
-    
+    return states
+
     # return (regional_vacancies(vacancies, exclude_capitals)
     #             .drop(columns=["Total"])
     #             .sum(axis="columns")
@@ -167,17 +211,35 @@ def regional_vacancies_exclude_mainland_state_capitals(
 
 
 def regional_vacancies_exclude_all_capitals_(
-    exclude_capitals=["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth", "Hobart", "Darwin", "Canberra & ACT"],
-    total_only=True
-    ):
+    exclude_capitals=[
+        "Sydney",
+        "Melbourne",
+        "Brisbane",
+        "Adelaide",
+        "Perth",
+        "Hobart & Southeast Tasmania",
+        "Darwin",
+        "Canberra & ACT",
+    ],
+    total_only=True,
+):
     return regional_vacancies(exclude_capitals, total_only)
 
 
 def regional_vacancies_exclude_all_capitals(
-    vacancies = None,
-    exclude_capitals=["Sydney", "Melbourne", "Brisbane", "Adelaide", "Perth", "Hobart", "Darwin", "Canberra & ACT"],
-    total_only=True
-    ):
+    vacancies=None,
+    exclude_capitals=[
+        "Sydney",
+        "Melbourne",
+        "Brisbane",
+        "Adelaide",
+        "Perth",
+        "Hobart & Southeast Tasmania",
+        "Darwin",
+        "Canberra & ACT",
+    ],
+    total_only=True,
+):
     """[summary]
     
     Parameters
@@ -193,11 +255,11 @@ def regional_vacancies_exclude_all_capitals(
         [description]
     """
     if vacancies is None:
-            vacancies = read_vacancy()
+        vacancies = read_vacancy()
 
     states = regional_vacancies(vacancies, exclude_capitals, total_only)
 
-    return(states)
+    return states
 
 
 def QTB_vacancy_table(vacancies=None, month=None):
@@ -218,16 +280,17 @@ def QTB_vacancy_table(vacancies=None, month=None):
     if vacancies is None:
         vacancies = read_vacancy()
 
-    df= (pd
-            .concat(
-                [regional_vacancies(vacancies),
-                regional_vacancies_exclude_all_capitals(vacancies, total_only=True),
-                regional_vacancies_exclude_mainland_state_capitals(vacancies, total_only=True),
-                ],
-                axis="columns"
-            )
-        )
-    
+    df = pd.concat(
+        [
+            regional_vacancies(vacancies),
+            regional_vacancies_exclude_all_capitals(vacancies, total_only=True),
+            regional_vacancies_exclude_mainland_state_capitals(
+                vacancies, total_only=True
+            ),
+        ],
+        axis="columns",
+    )
+
     # Return year values for month of last entry
     if month is None:
         idx = df.index.month == df.index.month[-1]
@@ -240,12 +303,12 @@ def QTB_vacancy_table(vacancies=None, month=None):
     else:
         return df
 
-    
+
 def one_digit_anzsco(
     vacancies=None,
     match_date=None,
     exclude_capitals=["Sydney", "Melbourne", "Brisbane"],
-    ):
+):
     """Return vacancy totals for 1 digint ANZSCO
     
     
@@ -270,30 +333,29 @@ def one_digit_anzsco(
     print(f"Summary data for {match_date:%B %Y}\n")
 
     idx = (
-            (vacancies.date == match_date) & 
-            (vacancies.anzsco_code.str.len() == 1) & 
-            (vacancies.anzsco_code != "0") & 
-            (~vacancies.region.isin(exclude_capitals))
-        )
+        (vacancies.date == match_date)
+        & (vacancies.anzsco_code.str.len() == 1)
+        & (vacancies.anzsco_code != "0")
+        & (~vacancies.region.isin(exclude_capitals))
+    )
 
-    
     def index_string_title(df):
         df.index = df.index.str.title()
         return df
-    
+
     def add_column_totals(df):
-        df.loc['Total', :] = df.sum(axis=0)
+        df.loc["Total", :] = df.sum(axis=0)
         return df
 
-    df = (vacancies[idx]
-            .groupby(["state", "anzsco_title"])
-            .vacancies
-            .sum()
-            .unstack("state")
-            .assign(Total=lambda x: x.sum(axis=1))
-            .pipe(index_string_title)
-            .pipe(add_column_totals)
-            .round()
+    df = (
+        vacancies[idx]
+        .groupby(["state", "anzsco_title"])
+        .vacancies.sum()
+        .unstack("state")
+        .assign(Total=lambda x: x.sum(axis=1))
+        .pipe(index_string_title)
+        .pipe(add_column_totals)
+        .round()
     )
 
     return df[COL_ORDER]
