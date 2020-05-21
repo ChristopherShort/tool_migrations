@@ -105,17 +105,17 @@ def adjust_chart(ax, ylim_min=None, do_thousands=True):
 
     fig = ax.get_figure()
 
-    if len(fig.axes) == 2:
-        fig.axes[1].remove()
+    # if len(fig.axes) == 2:
+    #     fig.axes[1].remove()
 
-    ax2 = ax.twinx()
-    ax2.set_ylim(ax.get_ylim())
+    ax_ = ax.twinx()
+    ax_.set_ylim(ax.get_ylim())
 
     ax.set_xlabel("")
 
     if ax.get_ylim()[0] < 0:
         ax.spines["bottom"].set_position(("data", 0))
-        ax2.spines["bottom"].set_visible(False)
+        ax_.spines["bottom"].set_visible(False)
 
     for axe in ax.get_figure().axes:
         axe.tick_params(axis="y", length=0)
@@ -127,9 +127,9 @@ def adjust_chart(ax, ylim_min=None, do_thousands=True):
     ax.grid(axis="y", alpha=0.5, lw=0.8)
 
     if do_thousands:
-        thousands(ax, ax2)
+        thousands(ax, ax_)
 
-    return ax, ax2
+    return ax, ax_
 
 
 def recession_spans():
