@@ -167,11 +167,15 @@ def gen_ABS_3412(file_path, calendar=None):
     A generator to read in ABS Migration Australia data from ABS 3412 excel workbooks
 
     Parameters:
+    -----------
     file_path: str or file path object
 
     calendar: boolean
         True for calendar year data, False for financial year data[]
 
+    Yields:
+    ------
+    A tidy dataframe for each data worksheet in ABS 3412
     """
 
     if not isinstance(calendar, bool):
