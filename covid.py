@@ -104,8 +104,8 @@ def plot_scenario_comparison(df, scenario_name, month="June"):
         else:
             ylim = [None, None]
 
-        df.loc["2015":"2022", "nom_scenario"].plot(ax=ax, ylim=ylim, color="C0", alpha=0.75, ls=("dashed"))
-        df.loc["2015" : "2022", "nom_original"].plot(ax=ax, ylim=ylim, color="C0", alpha=1, ls=("solid"))
+            df.loc["2015":"2022", "nom_scenario"].plot(ax=ax, ylim=ylim, color="C0", alpha=0.75, ls=("dashed"))
+            df.loc["2015" : "2022", "nom_original"].plot(ax=ax, ylim=ylim, color="C0", alpha=1, ls=("solid"))
         
         _ = adjust_chart(ax)
 
