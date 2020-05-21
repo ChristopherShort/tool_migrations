@@ -1,12 +1,13 @@
 from pathlib import Path
 import pandas as pd
+import file_paths
 
 import chris_utilities as cu
 
 
 # TODO automatically download the datacubes and convert
 
-DATA_ABS_PATH = Path.home() / "Analysis/Australian economy/Data/ABS/"
+DATA_ABS_PATH = file_paths.abs_data_folder
 
 
 def convert_lm7_excel_to_parquet(data_folder):
@@ -70,7 +71,7 @@ def convert_lm7_excel_to_parquet(data_folder):
     )
 
     for col in df.select_dtypes(include="object").columns:
-        df[col] = df[col].astype("category")
+        df[col] = df[col].astype("string")
 
     df.to_parquet(data_folder / "LM7.parquet")
 
@@ -414,20 +415,39 @@ def LM7_organised(df=None, with_missing_COB=False, category="employed_total"):
         )
 
 
-def delta_by_duration(df=None, month=6, category="employed_total"):
+def delta_by_duration(df=None, month=6, delta=5, category="employed_total"):
+    """[summary]
+
+    Parameters
+    ----------
+    df : [type], optional
+        [description], by default None
+    month : int, optional
+        [description], by default 6
+    delta : int, optional
+        number of years, by default 5
+    category : str, optional
+        [description], by default "employed_total"
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
     print(category.replace("_", " ").capitalize())
 
     if df is None:
         df = LM7_organised(category=category)
 
+
     if month:
         idx = df.index.month == month
         df = df[idx]
         # as employed has annual year data
-        time_delta = 5
-    else:
-        # employed has monthly data
-        time_delta = 60
+        time_delta = delta
+    # else:
+    #     # employed has monthly data
+    #     time_delta = 60
 
 
     idx = ['Born in Australia', 'total' ]
