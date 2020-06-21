@@ -99,13 +99,13 @@ def plot_scenario_comparison(df, scenario_name, month="June"):
         
         fig, ax = plt.subplots()
 
-        if df.min().min() >= -1: ### account for digit maths having very small negative numbers
+        if df.min().min() >= -1: ### account for digital maths having very small negative numbers
             ylim = [0, None]
         else:
             ylim = [None, None]
 
-            df.loc["2015":"2022", "nom_scenario"].plot(ax=ax, ylim=ylim, color="C0", alpha=0.75, ls=("dashed"))
-            df.loc["2015" : "2022", "nom_original"].plot(ax=ax, ylim=ylim, color="C0", alpha=1, ls=("solid"))
+        df.loc["2015":"2022", "nom_scenario"].plot(ax=ax, ylim=ylim, color="C0", alpha=0.75, ls=("dashed"))
+        df.loc["2015" : "2022", "nom_original"].plot(ax=ax, ylim=ylim, color="C0", alpha=1, ls=("solid"))
         
         _ = adjust_chart(ax)
 
