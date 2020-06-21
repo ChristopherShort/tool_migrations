@@ -41,9 +41,9 @@ def nom_year_ending(df_nom=None):
     """
 
     if df_nom is None:
-        df = read_3101()
+        df_nom = read_3101()
 
-    return df.net_overseas_migration.rolling(4).sum().dropna()
+    return df_nom.net_overseas_migration.rolling(4).sum().dropna()
         
 
 def nom_year_ending_annual(df_nom=None, quarter="A-Jun"):
