@@ -7,9 +7,11 @@ import re
 import pandas as pd
 
 import chris_utilities as cu
+import file_paths
 
 
-DATA_ABS_PATH = Path.home() / "Analysis/Australian economy/Data/ABS"
+abs_folder = file_paths.abs_data_folder
+audit_folder = file_paths.abs_audit_folder
 
 capital_names = {"Greater Sydney": "Sydney",
                  "Greater Melbourne": "Melbourne",
@@ -20,6 +22,7 @@ capital_names = {"Greater Sydney": "Sydney",
                  "Greater Darwin": "Darwin",
                 "Australian Capital Territory": "Canberra",
             }
+
 
 regional_names = {"Rest of NSW": "NSW",
                 "Rest of Vic.": "Vic",
@@ -48,7 +51,7 @@ def series_id_3101():
 
 
 def read_abs_data(
-    folder_path=DATA_ABS_PATH, fname="310101.xls", series_id=None, sheet_name="Data1"
+    folder_path=abs_folder, fname="310101.xls", series_id=None, sheet_name="Data1"
     ):
     """ Extract data from an ABS time series file
     fname="310101.xls",
@@ -93,7 +96,7 @@ def read_abs_data(
     return df
 
 
-def read_abs_notes(data_folder=DATA_ABS_PATH, fname="310101.xls", sheet_name="Data1"):
+def read_abs_notes(data_folder=abs_folder, fname="310101.xls", sheet_name="Data1"):
     """
     Read notes in a data table
     Start in column A
@@ -123,7 +126,7 @@ def read_abs_notes(data_folder=DATA_ABS_PATH, fname="310101.xls", sheet_name="Da
     return
 
 
-def read_abs_meta_data(data_folder=DATA_ABS_PATH, fname="310101.xls", sheet_name="Data1"):
+def read_abs_meta_data(data_folder=abs_folder, fname="310101.xls", sheet_name="Data1"):
     """
     Return met data for all sereis from an ABS time series worksheet.
 
@@ -229,7 +232,7 @@ def remove_note_references(df):
 
 
 def components_state_to_parquet(
-    data_folder=DATA_ABS_PATH, filenames=["310102.xls", "3101016a.xls", "3101016b.xls"]
+    data_folder=abs_folder, filenames=["310102.xls", "3101016a.xls", "3101016b.xls"]
     ):
     """
     Extract the state level components from 310102 (TABLE 2. Population Change, Components) and
@@ -239,7 +242,7 @@ def components_state_to_parquet(
 
     def gen_components(data_folder):
         for filename in filenames:
-            meta = read_abs_meta_data(data_folder=DATA_ABS_PATH, fname=filename)
+            meta = read_abs_meta_data(data_folder=abs_folder, fname=filename)
 
 
             # Extract "component" and "state" from Description, will have trailing column due to ";"
@@ -273,12 +276,12 @@ def components_state_to_parquet(
     components = pd.concat(gen_components(data_folder), sort=False)
     components = components[["date", "state", "component", "value"]]
 
-    components.to_parquet(DATA_ABS_PATH / "310102_state_components.parquet")
+    components.to_parquet(abs_folder / "310102_state_components.parquet")
 
     return components
 
 
-def components_sa2_to_parquet(data_folder=DATA_ABS_PATH, fname=None):
+def components_sa2_to_parquet(data_folder=audit_folder / "3218.0", fname="32180ds0001_2018-19.xls"):
     """Create parquet file of 3218 SA2 level component data
     
     Parameters
@@ -293,8 +296,6 @@ def components_sa2_to_parquet(data_folder=DATA_ABS_PATH, fname=None):
     [type]
         [description]
     """
-    if fname is None:
-        fname = "32180ds0001_2017-18.xls"
 
     col_names = [
         "S_T_code",
@@ -318,6 +319,7 @@ def components_sa2_to_parquet(data_folder=DATA_ABS_PATH, fname=None):
         "population_density",
     ]
 
+    # 2016-17 had different structure
     if "2016-17" in fname:
         ### ABS has ERP delta and percent after nim, nom etc for 2016-17
         col_names = [
@@ -348,23 +350,23 @@ def components_sa2_to_parquet(data_folder=DATA_ABS_PATH, fname=None):
     table_sheet_range = range(1,9)
     
     df = (pd
-            .concat(gen_states(fname, col_names, table_sheet_range), sort=False)
+            .concat(gen_states(data_folder, fname, col_names, table_sheet_range), sort=False)
             .pipe(cu.clean_column_names)
     )
 
     fparquet_name = (
-            (DATA_ABS_PATH / fname)
+            (abs_folder / fname)
             .stem
             .replace("-", "_") 
             + "_sa2.parquet"
     )
     
-    df.to_parquet(DATA_ABS_PATH / fparquet_name)
+    df.to_parquet(abs_folder / fparquet_name)
 
     return df
 
 
-def components_lga_to_parquet(data_folder=DATA_ABS_PATH, fname=None):
+def components_lga_to_parquet(data_folder=abs_folder, fname=None):
     col_names = [
         "lga_code",
         "local_government_area",
@@ -390,18 +392,18 @@ def components_lga_to_parquet(data_folder=DATA_ABS_PATH, fname=None):
     )
 
     fparquet_name = (
-            (DATA_ABS_PATH / fname)
+            (abs_folder / fname)
             .stem
             .replace("-", "_") 
             + "_lga.parquet"
     )
 
-    df.to_parquet(DATA_ABS_PATH / fparquet_name)
+    df.to_parquet(abs_folder / fparquet_name)
 
     return df
 
 
-def gen_states(fname, col_names, table_sheet_range):
+def gen_states(data_folder, fname, col_names, table_sheet_range):
     """generator to read 3218 workbooks
     
     Parameters
@@ -412,7 +414,7 @@ def gen_states(fname, col_names, table_sheet_range):
         [description]
     """
     for table_no in table_sheet_range:
-        df = pd.read_excel(DATA_ABS_PATH / fname,
+        df = pd.read_excel(data_folder / fname,
                             sheet_name="Table " + str(table_no),
                             skiprows=7,
                                 skipfooter=7,
@@ -455,3 +457,7 @@ def replace_erp_year(col_names, fname):
     #set year for population_density
     return ["population_density_20" + m.group(2) if col == "population_density" else col for col in col_names]
 
+
+def extract_abs_history():
+
+    return
