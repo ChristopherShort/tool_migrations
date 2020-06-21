@@ -12,6 +12,9 @@ dict_data_folder = base_data_folder / "Dictionaries"
 
 abs_data_folder = base_data_folder / "ABS"
 
+#ABS fresh download
+abs_audit_folder = abs_data_folder / "ABS data audit"
+
 # Home Affairs stock data
 stock_data_folder = base_data_folder / "Stock"
 
