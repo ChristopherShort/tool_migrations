@@ -40,6 +40,27 @@ forecasting_input_folder = forecasting_data_folder / "input"
 
 
 def process_original_ABS_data(abs_original_data_folder, analysis_folder):
+    """Process the SAS data, include removing previous preliminary parquet 
+       and replace with final parquet, and add new preliminary parquet for latest quarter
+
+    Parameters
+    ----------
+    abs_original_data_folder : Path ojbect
+        SAS data directory
+    analysis_folder : Path object
+        ABS Traveller characteristics folder pat
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    ValueError
+        Check ABS NOM files must commence with p or f
+        This differentiates between preliminary and final NOM
+        Raise error to advice user that RTS file name convention not in place
+    """
     # TODO: read from the zip file rather than unzipped data
 
     # variables to convert to ints or strings
@@ -1376,6 +1397,47 @@ def gen_get_visa_group(df_fields, vsc_list=None):
             yield df
         else:
             yield df.query("visa_subclass == @vsc_list")
+
+
+def get_NOM_query():
+    """[summary]
+    """
+    nom_fields = [
+        'person_id',
+        'duration_movement_date',
+        'visa_subclass',
+        'net_erp_effect',
+        "country_of_citizenship",
+        "country_of_stay",
+    ]
+
+    # query_visa = "(visa_subclass=='573') | (visa_subclass=='572')"
+    # query_citizenship = "(country_of_citizenship==6101) | (country_of_citizenship==7103) | (country_of_citizenship==7105)"
+    # query_citizenship = "(country_of_citizenship==6203)"
+    # query = f"({query_visa}) and ({query_citizenship}) and net_erp_effect > 0" #or country_of_birth==6101
+
+
+    # Define the groupby
+    def gen_get_query(df_fields):
+        for df in df_fields:
+            yield df #.query(query_citizenship)  #query
+
+    # establish the generators
+    file_paths = nom.gen_nom_files(data_folder, abs_visagroup_exists=False)
+    df_fields = nom.gen_nom_fields(file_paths, nom_fields)
+    df_query = gen_get_query(df_fields)
+
+
+    df = (pd.concat(df_query, axis=0, ignore_index=True, sort=False)
+            .rename({'duration_movement_date': 'date'}, axis='columns')
+            .assign(abs_visa_group = lambda x: x.visa_subclass.map(abs_mapper))
+            .assign(country_of_citizenship = lambda x: x.country_of_citizenship.map(sacc_nom))
+            .assign(country_of_stay = lambda x: x.country_of_stay.map(sacc_nom))
+        )
+
+
+
+    return df
 
 
 def get_nom_file_fields(data_folder, nom_fields, abs_visagroup_exists=False):
