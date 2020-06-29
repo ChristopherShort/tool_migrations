@@ -9,9 +9,10 @@ import requests
 from requests_html import HTMLSession
 
 import chris_utilities as cu
+import file_paths
 
-DATA_FOLDER_VACANCY = Path.home() / "Analysis/Australian economy/Data/internet_vacancy"
-# DATA_FOLDER_VACANCY = Path(".")
+DATA_FOLDER_VACANCY = file_paths.internet_vacancy_folder
+
 
 EXCEL_FILE_NAME = "IVI_DATA_regional - May 2010 onwards"
 
@@ -49,20 +50,26 @@ def download_vacancy_file():
     """
     url_lmip = "http://lmip.gov.au/default.aspx?LMIP/VacancyReport"
     url_regional_data = "http://lmip.gov.au/PortalFile.axd?FieldID=2790180&.xlsx"
+    url_region_data_code = "2790180"
     
     session = HTMLSession()
     r = session.get(url_lmip)
 
-    if url_regional_data in r.html.absolute_links:
-        if is_file_type_downloadable(url_regional_data):
-            xl_file = session.get(url_regional_data)
-            with open(DATA_FOLDER_VACANCY / f"{EXCEL_FILE_NAME}.xlsx", "wb") as output:
-                output.write(xl_file.content)
-            return "downloaded"
-        else:
-            return "Failed - talk to chris"
+    url_regional_data = [url for url in r.html.absolute_links if url_region_data_code in url]
+
+    if len(url_regional_data) == 1:
+        url_regional_data = url_regional_data[0]
     else:
-        return False
+        raise ValueError(f"The regional data file with {url_region_data_code} in it's link is not on this page")
+
+    
+    if is_file_type_downloadable(url_regional_data):
+        xl_file = session.get(url_regional_data)
+        with open(DATA_FOLDER_VACANCY / f"{EXCEL_FILE_NAME}.xlsx", "wb") as output:
+            output.write(xl_file.content)
+        return "downloaded"
+    else:
+        raise ValueError(f"File link {url_region_data_code} was not downloadable")
 
 
 def make_vacancy_parquet(
