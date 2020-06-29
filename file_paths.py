@@ -34,3 +34,6 @@ ha_grant_data_folder = program_data_folder / "Grants"
 # Australian Statistical Geography Standard (ASGS)
 asgs_folder = abs_data_folder / "ASGS"
 shapely = asgs_folder / "shapely"
+
+# Internet vacancy data
+internet_vacancy_folder = base_data_folder / "internet_vacancy"
