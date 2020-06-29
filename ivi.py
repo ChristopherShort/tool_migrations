@@ -40,7 +40,7 @@ def download_vacancy_file():
     #TODO Add error checking
     #TODO get/check excel file parameters at URL to confirm it is latest version 
             (ie - covers upto current month)
-    #TODO fix returned "downloaded" & "failed" to proper returns as part of proper error checking
+    #TODO fix returned "downloaded" & "failed" to proper returns as part of error checking
 
     Returns
     -------
