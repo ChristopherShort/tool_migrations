@@ -59,7 +59,7 @@ def make_scenario(df, start, stop, adjusted_visas, percentage_change=100):
     return df
 
 
-def plot_scenario_comparison(df, scenario_name, month="June"):
+def plot_scenario_comparison(df, scenario_name, month="June", title=None):
         """display comparison nom comparison, 
            place comparsion in clipboard
            plot scenario against comparison
@@ -80,6 +80,7 @@ def plot_scenario_comparison(df, scenario_name, month="June"):
         
         # show NOM scenario comparison
 
+
         cal_month = dict((v, k) for k, v in enumerate(calendar.month_name))
 
         if month not in calendar.month_name:
@@ -94,25 +95,39 @@ def plot_scenario_comparison(df, scenario_name, month="June"):
         idx = df.index.month == cal_month[month]
 
         print("Calendar year differences")
-        display(df[idx]["2019":"2022"])
-        df[idx]["2019":"2022"].assign(scenario = scenario_name).to_clipboard()
+        display(df[idx]["2019":"2024"])
+        df[idx]["2019":"2024"].assign(scenario = scenario_name).to_clipboard()
         
         fig, ax = plt.subplots()
 
-        if df.min().min() >= -1: ### account for digital maths having very small negative numbers
-            ylim = [0, None]
-        else:
-            ylim = [None, None]
+        ylim = [None, None]
 
-        df.loc["2015":"2022", "nom_scenario"].plot(ax=ax, ylim=ylim, color="C0", alpha=0.75, ls=("dashed"))
-        df.loc["2015" : "2022", "nom_original"].plot(ax=ax, ylim=ylim, color="C0", alpha=1, ls=("solid"))
+        df.loc[:"2019-12", "original"].plot(ax=ax, label="History", )
+
+        df.loc["2020-01" :, "original"].plot(ax=ax,  color="C0", alpha=1, ls=("dashed"), label="Reference forecast")
+        df.loc["2020-01":, "scenario"].plot(ax=ax, color="C1", alpha=0.75, ls=("dashed"), label="July scenario")
         
-        _ = adjust_chart(ax)
+
+        if df.min().min() >= -1: ### account for digital maths having very small negative numbers
+            ax.set_ylim([0, None])
+        else:
+            ax.set_ylim([None, None])
+        
+        
+        ax, ax2 = adjust_chart(ax)
+
+    
+
+        if title:
+            ax.set_title(title, fontsize=10)
+        
+        # ax.legend(loc="upper center", ncol=3, fontsize=9)
+        ax.legend(bbox_to_anchor=(0., 0.905, 1., 0), loc='lower center',ncol=3)
 
         return fig, ax
 
 
-def get_comparison(forecast, scenario):
+def get_comparison(forecast, scenario, visa_group="nom", direction = "nom"):
     """Creates a dataframe with nom end of year values from the dataframes and calculates difference
     
     Parameters
@@ -124,12 +139,12 @@ def get_comparison(forecast, scenario):
     """
 
     # create rolling end of year nom from each dataframe
-    forecast_nom_eoy = forecast[("nom", "nom")].rolling(12).sum().dropna().rename("nom_original")
-    scenario_nom_eoy = scenario[("nom", "nom")].rolling(12).sum().dropna().rename("nom_scenario")
+    forecast_nom_eoy = forecast[(visa_group, direction)].rolling(12).sum().dropna().rename(f"original")
+    scenario_nom_eoy = scenario[(visa_group, direction)].rolling(12).sum().dropna().rename(f"scenario")
 
     return (pd
         .concat([forecast_nom_eoy, scenario_nom_eoy], axis=1)
         .dropna()
-        .assign(difference = lambda x:x.nom_original-x.nom_scenario)
-                    )
+        .assign(difference = lambda x: x.original - x.scenario)
+    )
 
