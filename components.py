@@ -6,6 +6,8 @@ import pandas as pd
 
 import data
 
+import file_paths
+
 from data import read_abs_data, read_abs_meta_data
 
 DATA_ABS_PATH = Path.home() / "Documents/Analysis/Australian economy/Data/ABS"
