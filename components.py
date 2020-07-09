@@ -174,6 +174,26 @@ def annual_population_components(df=None, month=6):
     return population
 
 
+def get_pop_by_age(region=None, gender=None):
 
+    filepath = file_paths.abs_data_folder / "3101 age by year by gender.parquet"
+
+    df = pd.read_parquet(filepath)
+
+    if region:
+        ### need to generalise for multiple regions..pass list etc
+        if region in df.region.unique():
+            df = df[df.region == region]
+        else:
+            raise ValueError(f"{region} is not in list of regions: {', '.join(sorted(df.region.unique()))}")
+
+    if gender:
+        if gender in df.gender.unique():
+            df = df[df.gender == gender]
+        else:
+            raise ValueError(f"{region} is not in list of regions: {', '.join(sorted(df.gender.unique()))}")
+
+    return df
+    
 
 
