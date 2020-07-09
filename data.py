@@ -51,7 +51,7 @@ def series_id_3101():
 
 
 def read_abs_data(
-    folder_path=abs_folder, fname="310101.xls", series_id=None, sheet_name="Data1"
+    folder_path=abs_folder, fname="310101.xls", series_id=None, sheet_name="Data1", names=None
     ):
     """ Extract data from an ABS time series file
     fname="310101.xls",
@@ -81,17 +81,21 @@ def read_abs_data(
     df.index = df.index + pd.offsets.MonthEnd()
     df.index.name = "date"
 
-    if series_id is None:
+    if (series_id is None) and (names is None):
         # Return all data with ABS variable names
         # Consider returning meta data as well
         # How will user know requesting both meta and data?
         return df
 
     # else - keep selected series
-    series_names_to_keep = list(series_id.values())
-    df = df[series_names_to_keep]
 
-    df.columns = list(series_id.keys())
+    if series_id:
+        series_names_to_keep = list(series_id.values())
+        df = df[series_names_to_keep]
+
+        df.columns = list(series_id.keys())
+    else:
+        df.columns = names
 
     return df
 
@@ -456,6 +460,66 @@ def replace_erp_year(col_names, fname):
 
     #set year for population_density
     return ["population_density_20" + m.group(2) if col == "population_density" else col for col in col_names]
+
+
+def gen_read_erp_by_single_year_of_age():
+    """Create tidy data version of erp by gender by age by year from 310105X.xls files in data audit
+
+    Yields
+    -------
+    dataframe
+        tidy data version collating all State, Territory and Australia erp by age by gender by year
+    """
+
+    data_folder = file_paths.abs_audit_folder / "3101.0"
+    
+    # Loop over 3101051xls through 3101059.xls
+    for i in range(1,10):
+        fname = "310105" + str(i) + ".xls"
+        
+        dfs = pd.read_excel(data_folder / fname, sheet_name=None)
+
+        #Get region name, eg New South Wales
+        region = dfs["Index"].iloc[4,1]
+        idx = region.rfind(",") + 1
+        region = region[idx:].strip() 
+
+        for sheet in dfs.keys():
+            if "data"  in sheet.lower():
+            # Build gender, age multiindex for ABS data
+                age_gender_labels = (read_abs_meta_data(data_folder, fname, sheet_name=sheet)
+                    .Description.str.split(pat=r" *; *", expand=True)
+                    .iloc[:,1:-1]
+                    .rename(columns={1:"gender", 2:"age"})
+                )
+                age_gender_labels.age =  age_gender_labels.age.replace({"100 and over": 100}, value=None).astype(int)
+                age_gender_labels = pd.MultiIndex.from_frame(age_gender_labels)
+                
+                # read in ABS data, set column values to multiindex age_gender_labels
+                df = read_abs_data(data_folder, fname, sheet_name=sheet, names=age_gender_labels)
+
+                df = (df
+                    .stack(list(age_gender_labels.names))
+                    .rename("value")
+                    .reset_index()
+                    .assign(region=region)
+                    .convert_dtypes()
+                )
+
+                # df = read_abs_data(data_folder, fname, sheet_name=sheet)
+
+                # meta_multi_index = pd.MultiIndex.from_frame(meta)
+                # df.columns = meta_multi_index
+
+                # df = (df
+                #          .stack(meta_multi_index.names)
+                #          .rename("value")
+                #          .reset_index()
+                #          .assign(region=region)
+                #          .convert_dtypes()
+                #      )
+
+                yield df
 
 
 def extract_abs_history():
