@@ -281,7 +281,7 @@ def download_abs_file(url, xl_file_name, data_folder=ABS_DATA_FOLDER):
         with open(data_folder / xl_file_name, "wb") as output:
             output.write(xl_file.content)
     else:
-        raise ValueError(f"Chris - Not valide excel file: {url}, {xl_file_name}.")
+        raise ValueError(f"Chris - Not valid excel file: {url}, {xl_file_name}.")
 
     # print(f'{file_name} donwloaded.')
     return None
@@ -292,6 +292,10 @@ def download_abs_catalog_excel_files(
     ):
     """
     Download all excel files associated with a given catalog number
+
+    Use ABS latest release base url, http://www.abs.gov.au/ausstats/abs@.nsf/mf/
+
+    
     """
     print(url_cat_downloads_page)
     session = HTMLSession()
