@@ -17,7 +17,7 @@ import file_paths
 ABS_FOLDER = file_paths.abs_data_folder
 DICT_FOLDER = file_paths.dict_data_folder
 
-def get_kde(df, year=None):
+def get_kde(df, tile=True, year=None):
     """create a kernel density object of population ages
 
     Parameters
@@ -33,7 +33,10 @@ def get_kde(df, year=None):
         a statsmodels kernel density object of ages
     """
     #tile age by the count value
-    population_age = tile_age(df, year=year)
+    if tile:
+        population_age = tile_age(df, year=year)
+    else:
+        population_age = df.age
 
     kde_population_age = sm.nonparametric.KDEUnivariate(population_age.values)
     kde_population_age.fit()
