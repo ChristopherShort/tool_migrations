@@ -506,18 +506,6 @@ def gen_read_erp_by_single_year_of_age():
                     .convert_dtypes()
                 )
 
-                # df = read_abs_data(data_folder, fname, sheet_name=sheet)
-
-                # meta_multi_index = pd.MultiIndex.from_frame(meta)
-                # df.columns = meta_multi_index
-
-                # df = (df
-                #          .stack(meta_multi_index.names)
-                #          .rename("value")
-                #          .reset_index()
-                #          .assign(region=region)
-                #          .convert_dtypes()
-                #      )
 
                 yield df
 
