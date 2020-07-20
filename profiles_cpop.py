@@ -105,17 +105,24 @@ def get_x_y(population_age, kde, scaled=True, slice=None):
 
 def get_concordance_dictionary():
 
-    file_path = DICT_FOLDER / "ABS - Visacode3412mapping.xlsx"
+    # file_path = DICT_FOLDER / "ABS - Visacode3412mapping.xlsx"
 
-    concordance = pd.read_excel(file_path, sheet_name="concordance")
+    # concordance = pd.read_excel(file_path, sheet_name="concordance")
+
+    concordance = (pd
+    .read_csv("data/Final Concordance - w provisional.txt", sep="\t")
+    .assign(vsc = lambda x:x.VISAP.str.strip())
+    .drop(columns=["VISAP"])
+    .convert_dtypes()
+          )
 
     #work around to ensure vsc's are strings
-    concordance.vsc = [str(i) for i in concordance.vsc.array]
-    concordance = concordance.convert_dtypes()
+    # concordance.vsc = [str(i) for i in concordance.vsc.array]
+    # concordance = concordance.convert_dtypes()
 
     concordance_dict = {visa_group:list(group.vsc) 
         for visa_group, group in concordance.groupby("Hierarchy3") 
-            if visa_group not in ["bridging", "unknown", "australian", "visitor", "humanitarian"]
+            if visa_group not in ["bridging", "unknown", "australian", "humanitarian"] #visitor
     }
 
     return concordance_dict
