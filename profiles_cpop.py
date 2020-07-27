@@ -6,6 +6,7 @@ Functions for helping CPOP profiles.
 import pandas as pd
 import numpy as np
 import matplotlib as mpl
+import matplotlib.ticker as ticker
 
 from matplotlib import pyplot as plt
 import statsmodels.api as sm
@@ -76,13 +77,15 @@ def clean_ticks_spines(ax):
     
     ax.spines['bottom'].set_position(('data', 0.0))
 
-    ax.yaxis.set_major_locator(plt.MaxNLocator(5))
+    # ax.yaxis.set_major_locator(plt.MaxNLocator(3))
+    ax.yaxis.set_major_locator(ticker.FixedLocator([0, 0.02, 0.04, 0.06]))
     
     ax.grid(True, axis='y', alpha=0.2)
     
     ax.tick_params(axis='y', length=0)
     
     ax.set_xlim(0, 100)
+    ax.set_ylim(0, None)
     
     return
 
