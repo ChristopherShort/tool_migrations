@@ -238,7 +238,7 @@ def thousands(*axes, y=True):
 
 
 def write_y_axis_label(
-    ax, text="missing", x_offset=0, y_offset=0.02, color="#808080", fontsize=8
+    ax, text="missing", x_offset=0, y_offset=0.02, color="#808080", fontsize=8, weight='normal'
     ):
 
     x_lhs = -x_offset
@@ -256,6 +256,7 @@ def write_y_axis_label(
         transform=ax.transAxes,
         color=color,
         fontsize=fontsize,
+        weight=weight,
     )
 
     # right y axis
@@ -268,6 +269,7 @@ def write_y_axis_label(
         transform=ax.transAxes,
         color=color,
         fontsize=fontsize,
+        weight=weight,
     )
     return None
 
