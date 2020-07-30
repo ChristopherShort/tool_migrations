@@ -37,3 +37,6 @@ shapely = asgs_folder / "shapely"
 
 # Internet vacancy data
 internet_vacancy_folder = base_data_folder / "internet_vacancy"
+
+# Profiles analysis
+profiles_folder = Path.home() / "Analysis/Australian economy/Visa analysis"
