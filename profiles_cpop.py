@@ -14,6 +14,8 @@ import statsmodels.api as sm
 import components
 import file_paths
 
+import chris_utilities as cu
+
 
 ABS_FOLDER = file_paths.abs_data_folder
 DICT_FOLDER = file_paths.dict_data_folder
@@ -62,7 +64,7 @@ def tile_age(df, year=None):
     """
 
     if year:
-        idx = df.date == pd.Timestamp(year)
+        idx = df.date == pd.to_datetime(year)
         population_age = df[idx].age.repeat(df[idx].value).reset_index(drop=True)
     else:
         population_age = df.age.repeat(df.value).reset_index(drop=True)
@@ -70,21 +72,29 @@ def tile_age(df, year=None):
     return population_age
 
 
-def clean_ticks_spines(ax):
+def clean_ticks_spines(
+    ax, 
+    fixed_locator=[0, 0.02, 0.04, 0.06],
+    xmax= 100,
+    ):
     
     for spine in ax.spines:
+        if spine == "bottom":
+            continue
         ax.spines[spine].set_visible(False)
     
     ax.spines['bottom'].set_position(('data', 0.0))
 
-    # ax.yaxis.set_major_locator(plt.MaxNLocator(3))
-    ax.yaxis.set_major_locator(ticker.FixedLocator([0, 0.02, 0.04, 0.06]))
+    if fixed_locator:
+        # ax.yaxis.set_major_locator(plt.MaxNLocator(3))
+        ax.yaxis.set_major_locator(ticker.FixedLocator(fixed_locator))
     
     ax.grid(True, axis='y', alpha=0.2)
     
     ax.tick_params(axis='y', length=0)
     
-    ax.set_xlim(0, 100)
+    if xmax:
+        ax.set_xlim(0,xmax)
     ax.set_ylim(0, None)
     
     return
@@ -113,7 +123,7 @@ def get_concordance_dictionary():
     # concordance = pd.read_excel(file_path, sheet_name="concordance")
 
     concordance = (pd
-    .read_csv("data/Final Concordance - w provisional.txt", sep="\t")
+    .read_csv(file_paths.profiles_folder / "data/Final Concordance - w provisional.txt", sep="\t")
     .assign(vsc = lambda x:x.VISAP.str.strip())
     .drop(columns=["VISAP"])
     .convert_dtypes()
@@ -125,7 +135,7 @@ def get_concordance_dictionary():
 
     concordance_dict = {visa_group:list(group.vsc) 
         for visa_group, group in concordance.groupby("Hierarchy3") 
-            if visa_group not in ["bridging", "unknown", "australian", "humanitarian"] #visitor
+            if visa_group not in ["unknown", "australian",] #visitor, "bridging", "humanitarian"]
     }
 
     return concordance_dict
@@ -168,3 +178,34 @@ def get_concordance_dictionary():
         # #     nom_by_age[col] = nom_by_age[col].astype("string")
         
         # return nom_by_age
+
+
+def invert_concordance(groups): #=visa_group_dict.items()
+    vsc_to_group_dict = {}
+    for group, vsc_list in groups:
+        for vsc in vsc_list:
+            if vsc in vsc_to_group_dict.keys():
+                raise ValueError("Chris - duplicate visa subclass")
+            vsc_to_group_dict[vsc] = group
+    
+    return vsc_to_group_dict
+
+
+def ha_visa_dict():
+    visas = (pd.
+    read_excel(
+        io=file_paths.profiles_folder / "data/MPO for 2017-18 and 2016-17.xlsx", 
+        sheet_name="MPO 2017-18 (2)", 
+        skiprows=3,
+        dtype={"vsc":"string"}
+    )
+      .ffill()
+      .convert_dtypes()
+      .pipe(cu.clean_column_names)
+     )
+
+    visa_dict = {}
+    for stream, program in visas.groupby(["visa_program_stream", "visa_category"]):
+        visa_dict[stream] = list(program.vsc.array)
+    
+    return visa_dict
