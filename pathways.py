@@ -13,6 +13,8 @@ from chris_utilities import adjust_chart, set_fin_year_axis
 import seaborn as sns
 import nom_forecast as nomf
 
+import file_paths
+
 
 def set_path_3412(fpath=None):
     '''
@@ -32,7 +34,7 @@ def set_path_3412(fpath=None):
     return fpath
 
 
-def read_all_grant_data(file_path='RFI22541_EXTRACT_02_FILE01.parquet', 
+def read_all_grant_data(file_path=file_paths.grant_data_folder / 'RFI22541_EXTRACT_02_FILE01.parquet', 
                         columns=['TR_PERSON_ID', 
                                 'TR_VISA_SUBCLASS_CD', 
                                 'TR_VISA_GRANT_DT', 
