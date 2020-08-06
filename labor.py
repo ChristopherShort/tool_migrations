@@ -445,9 +445,9 @@ def delta_by_duration(df=None, month=6, delta=5, category="employed_total"):
         df = df[idx]
         # as employed has annual year data
         time_delta = delta
-    # else:
-    #     # employed has monthly data
-    #     time_delta = 60
+    else:
+        # employed has monthly data
+        time_delta = 60
 
 
     idx = ['Born in Australia', 'total' ]
@@ -455,10 +455,11 @@ def delta_by_duration(df=None, month=6, delta=5, category="employed_total"):
     delta = df[idx].diff(time_delta)
 
 
-    delta_order = ['Born in Australia',
-                'Arrived within last 5 years',
-                'arrived_more_than_5_years',
-                'total'
+    delta_order = [
+        'Born in Australia',
+        'Arrived within last 5 years',
+        'arrived_more_than_5_years',
+        'total'
                 ]
 
     delta = (pd
