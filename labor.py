@@ -294,6 +294,44 @@ def gender_population(df=None, delete_unknown_COB=True):
     return df.groupby(["date", "sex"])["labour_force", "population"].sum().unstack()
 
 
+def population_lf_metrics(df=None, delete_unknown_COB=True):
+    """Generate lfpr, emp-popultion rate and enemployment rate
+    Aggregate only
+    #TODO handle passing by gender and by age
+
+    Parameters
+    ----------
+    df : dataframe, optional
+        processed LM5 data, by default None
+    delete_unknown_COB : bool, optional
+        if a dataframe is not supplied, whether retriving LM is with or wihout COB data, by default True
+
+    Returns
+    -------
+    dataframe
+        labour force data in levels plus the metrics by date
+    """
+
+    if df is None:
+        df = read_lm5()
+        if delete_unknown_COB:
+            df = remove_unknown_COB(df)
+
+    columns = ["labour_force", "population", "employed_full_time", "employed_part_time", "unemployed_full_time", "unemployed_part_time_only"]
+    employed_cols = ["employed_full_time", "employed_part_time"]
+    unemployed_cols = ["unemployed_full_time", "unemployed_part_time_only"]
+
+    return (df
+        .groupby(["date"])
+        [columns]
+        .sum()
+        .assign(employed_all = lambda x: x[employed_cols].sum(axis=1))
+        .assign(unemployed_all = lambda x: x[unemployed_cols].sum(axis=1))
+        .assign(lfpr = lambda x: x.labour_force / x.population * 100)
+        .assign(ue_rate = lambda x: x.unemployed_all / x.labour_force * 100)
+        .assign(epr = lambda x: x.employed_all / x.population * 100)
+    )
+
 def rename_col_index(df, label):
     """rename level 0 of column indes to "label"
     
