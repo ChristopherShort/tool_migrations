@@ -8,8 +8,12 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.ticker as ticker
 
+from IPython.display import display
+
 from matplotlib import pyplot as plt
 import statsmodels.api as sm
+
+from lifelines import KaplanMeierFitter
 
 import components
 import file_paths
@@ -209,3 +213,182 @@ def ha_visa_dict():
         visa_dict[stream] = list(program.vsc.array)
     
     return visa_dict
+
+def get_visa_groups(df, permanents, df_2017_18):
+    """Generate shavres by first visa for a permanent visa intake
+
+    Parameters
+    ----------
+    df : [type]
+        [description]
+    permanents : [type]
+        [description]
+    df_2017_18 : [type]
+        [description]
+
+    Yields
+    -------
+    [type]
+        [description]
+    """
+    
+    visa_dict = get_concordance_dictionary()
+    vsc_dict = invert_concordance(visa_dict.items())
+    visa_dict['biip'] = ['188', '888']
+
+    for visa_focus in permanents:
+        print(f"{visa_focus}")
+        
+        pids = get_2017_18_pids(visa_dict[visa_focus], df_2017_18)
+        idx = df.TR_PERSON_ID.isin(pids)
+        dg = df[idx].groupby("TR_PERSON_ID")
+        
+        first = (dg.first()
+                 .assign(visa_group = lambda x: x.TR_VISA_SUBCLASS_CD.map(vsc_dict))
+                 .assign(visa_group = lambda x: x.visa_group.replace(" \(p\)", "", regex=True))
+                 .assign(delta = (dg.TR_VISA_GRANT_DT.last() - dg.TR_VISA_GRANT_DT.first()) / np.timedelta64(1, 'Y'))
+                 .assign(observed = 1)
+                )
+
+        #    print(first.visa_group.unique())
+
+        if visa_focus == "biip":
+            first.visa_group = first.visa_group.replace(['biip investor', 'biip skill'], ["biip", "biip"])
+
+        sources = first.groupby("visa_group").visa_group.count().sort_values(ascending=False)
+        
+        exclude = remove_permanent_visas(visa_focus)
+        
+        #    print(f"Excluded: {exclude}")
+
+        idx = sources.index.isin(exclude)
+                
+        print(f"Total: {sources.sum():,}, net of exclude: {sources.sum() - idx.sum()}")
+
+        shares_by_first = sources[~idx] / sources[~idx].sum() * 100
+
+        #ensure permanent visa target is first visa in legend by setting order of plotting
+        visa_order = [visa_focus] + [x for x in shares_by_first.index if x != visa_focus]
+        [v for v in exclude if visa_focus not in  v]
+
+        shares_by_first = shares_by_first.loc[visa_order].round(0).astype(int)
+
+        display(shares_by_first)
+        
+        print()
+        
+        statistics = pd.concat(get_statistics(first, shares_by_first, visa_focus))
+        
+        display(statistics)
+
+        yield statistics
+
+        
+
+def get_statistics(first, shares_by_first, visa_focus, minimum_share_level=1):
+    """[summary]
+
+    Parameters
+    ----------
+    first : [type]
+        [description]
+    shares_by_first : [type]
+        [description]
+    visa_focus : [type]
+        [description]
+    """
+    
+    keep_metrics = [
+        "mean",
+        "25%",
+        "50%",
+        "75%"
+    ]
+    for visa_group in shares_by_first[shares_by_first >= minimum_share_level].index:
+        print(visa_group)
+
+        if visa_group == visa_focus:
+            continue
+
+        idx = first.visa_group == visa_group
+
+        if idx.sum() == 0:
+            continue
+
+        kmf = KaplanMeierFitter()
+        kmf.fit(first[idx].delta.values)
+
+        metrics = (pd
+                .Series(kmf.survival_function_.index)
+                .describe()
+                .round(1)
+                .loc[keep_metrics]
+                .rename("value")
+                .to_frame()
+                .reset_index()
+                .assign(visa_group = visa_focus)
+                .assign(pathway = visa_group)
+                .rename(columns={"index":"statistic"})
+                )
+
+#         display(metrics)
+            
+        yield metrics
+
+
+def get_2017_18_pids(pathway_visa_list, df):
+
+    idx = df.TR_VISA_SUBCLASS_CD.isin(pathway_visa_list)
+
+
+    pids = df[idx].TR_PERSON_ID.unique()
+    
+    print(f"{len(pids):,} unique pids in the following visas: {','.join(pathway_visa_list)}")
+    
+    return pids
+
+
+def remove_permanent_visas(visa_focus):
+
+    exclude = [
+    #     "bridging",
+        "skilled independent",
+        "biip",
+        "biip skill",
+        "state and territory nominated",
+        "humanitarian",
+        "biip investor",
+        "nominated",
+        "employer sponsored",
+        "employer sponsored regional",
+        "family",
+        "resident return",
+    ]
+
+    # exclude visas that are not the focus
+
+    return [visa for visa in exclude if visa_focus not in visa]
+
+
+def swap_pswr_graduate(visa_summary):
+    """Replace "Post study Work Rights with Graduate visa
+
+    Parameters
+    ----------
+    visa_summary : [type]
+        [description]
+    """
+
+    if visa_summary.index.str.lower().str.contains("post"):
+        index_values = pd.Series(visa_summary.index.values).replace({"post study work rights": "Graduate visa"})
+    
+    visa_summary.index = index_values.values
+
+    return visa_summary
+
+
+# index_values[-1] = 'Graduate work'
+
+# shares_by_first.index = index_values
+
+# shares_by_first
