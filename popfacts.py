@@ -426,6 +426,7 @@ def get_nom(data_folder=data_folder_nom, nom_fields=None):
     df = (pd
         .concat(df_students, axis=0, ignore_index=True, sort=False)
         .rename({'duration_movement_date': 'date'}, axis='columns')
+        .assign(visa_subclass = lambda x: x.visa_subclass.astype('category'))
     )
 
     return df
