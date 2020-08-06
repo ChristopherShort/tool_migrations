@@ -22,6 +22,54 @@ DATA_FOLDER_AUDIT = Path.home() / "Analysis/Australian economy/Data/ABS/ABS data
 ASGS_FOLDER = ABS_DATA_FOLDER / "ASGS"
 
 
+def download_abs_catalog_excel_files(
+    cat_no="3101.0", url_cat_downloads_page=None, download_folder=DATA_FOLDER_AUDIT
+    ):
+    """
+    Download all excel files associated with a given catalog number
+
+    Use ABS latest release base url, http://www.abs.gov.au/ausstats/abs@.nsf/mf/
+
+    
+    """
+    print(url_cat_downloads_page)
+    session = HTMLSession()
+
+    if url_cat_downloads_page is None:
+        latest_release_base_url = "http://www.abs.gov.au/ausstats/abs@.nsf/mf/"
+        cat_no = latest_release_base_url + cat_no
+        url_cat_downloads_page = get_downloads_page_url(cat_no)
+
+    excel_downloads_page = session.get(url_cat_downloads_page)
+
+    # all downloads are tr elements of class 'listentry'
+    links_list = excel_downloads_page.html.find("tr.listentry")
+
+    # pattern to find excel links - eg 31010do003_200106.xls
+    pat = r"log\?openagent&([^\.]+\.xls)"
+
+    Path.mkdir(download_folder, exist_ok=True)
+
+    for entry in links_list:
+        # each links_list class contains 1 or 2 links: when it's two,
+        # it's for an excel and a zip file
+        for link in list(entry.absolute_links):
+            # check, and get, if it's an exel file
+            file_search = re.search(pat, link, re.IGNORECASE)
+            if file_search:
+                xl_file_name = file_search.group(1)
+                display(HTML(f'<a href="{link}">{entry.text}</a>, {xl_file_name}'))
+                download_abs_file(link, xl_file_name, download_folder)
+                time.sleep(2)
+
+                # if is_file_type_downloadable(link):
+                #     xl_file = session.get(link)
+                #     with open(data_folder / xl_file_name, 'wb') as output:
+                #         output.write(xl_file.content)
+                time.sleep(1)  # small break so as not to hammer ABS
+    return
+
+
 def get_downloads_page_url(url, allow_redirects=True):
     """
     Get the url for the Downloads/Details Page
@@ -49,6 +97,23 @@ def get_downloads_page_url(url, allow_redirects=True):
     return url_details_page[0]
 
 
+def download_abs_file(url, xl_file_name, data_folder=ABS_DATA_FOLDER):
+    """
+    Download the excel file given by the url
+    """
+    session = HTMLSession()
+
+    if is_file_type_downloadable(url):
+        xl_file = session.get(url)
+        with open(data_folder / xl_file_name, "wb") as output:
+            output.write(xl_file.content)
+    else:
+        raise ValueError(f"Chris - Not valid excel file: {url}, {xl_file_name}.")
+
+    # print(f'{file_name} donwloaded.')
+    return None
+
+
 def download_file(first_url, data_folder=ABS_DATA_FOLDER):
     file_params = file_details(first_url)
     file_name = file_params["filename"]
@@ -66,7 +131,7 @@ def download_file(first_url, data_folder=ABS_DATA_FOLDER):
 
 def is_file_type_downloadable(url):
     """
-    Check if the content type is an excel file
+    Check if the content type is an excel file or zip
 
     Do this by looking in the content_type of the header
     """
@@ -269,70 +334,6 @@ def make_year_date(df_index, is_calendar=True):
 
     return df_index
 
-
-def download_abs_file(url, xl_file_name, data_folder=ABS_DATA_FOLDER):
-    """
-    Download the excel file given by the url
-    """
-    session = HTMLSession()
-
-    if is_file_type_downloadable(url):
-        xl_file = session.get(url)
-        with open(data_folder / xl_file_name, "wb") as output:
-            output.write(xl_file.content)
-    else:
-        raise ValueError(f"Chris - Not valid excel file: {url}, {xl_file_name}.")
-
-    # print(f'{file_name} donwloaded.')
-    return None
-
-
-def download_abs_catalog_excel_files(
-    cat_no="3101.0", url_cat_downloads_page=None, download_folder=DATA_FOLDER_AUDIT
-    ):
-    """
-    Download all excel files associated with a given catalog number
-
-    Use ABS latest release base url, http://www.abs.gov.au/ausstats/abs@.nsf/mf/
-
-    
-    """
-    print(url_cat_downloads_page)
-    session = HTMLSession()
-
-    if url_cat_downloads_page is None:
-        latest_release_base_url = "http://www.abs.gov.au/ausstats/abs@.nsf/mf/"
-        cat_no = latest_release_base_url + cat_no
-        url_cat_downloads_page = get_downloads_page_url(cat_no)
-
-    excel_downloads_page = session.get(url_cat_downloads_page)
-
-    # all downloads are tr elements of class 'listentry'
-    links_list = excel_downloads_page.html.find("tr.listentry")
-
-    # pattern to find excel links - eg 31010do003_200106.xls
-    pat = r"log\?openagent&([^\.]+\.xls)"
-
-    Path.mkdir(download_folder, exist_ok=True)
-
-    for entry in links_list:
-        # each links_list class contains 1 or 2 links: when it's two,
-        # it's for an excel and a zip file
-        for link in list(entry.absolute_links):
-            # check, and get, if it's an exel file
-            file_search = re.search(pat, link, re.IGNORECASE)
-            if file_search:
-                xl_file_name = file_search.group(1)
-                display(HTML(f'<a href="{link}">{entry.text}</a>, {xl_file_name}'))
-                download_abs_file(link, xl_file_name, download_folder)
-                time.sleep(2)
-
-                # if is_file_type_downloadable(link):
-                #     xl_file = session.get(link)
-                #     with open(data_folder / xl_file_name, 'wb') as output:
-                #         output.write(xl_file.content)
-                time.sleep(1)  # small break so as not to hammer ABS
-    return
 
 
 #  ------------- ASGS material  -------------
