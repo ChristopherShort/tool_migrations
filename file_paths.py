@@ -12,7 +12,7 @@ dict_data_folder = base_data_folder / "Dictionaries"
 
 abs_data_folder = base_data_folder / "ABS"
 
-abs_leading_indicator = base_data_folder / "Leading indicator"
+abs_leading_indicator = abs_data_folder / "Leading indicator"
 
 #ABS audit download
 abs_audit_folder = abs_data_folder / "ABS data audit"
