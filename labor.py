@@ -332,6 +332,7 @@ def population_lf_metrics(df=None, delete_unknown_COB=True):
         .assign(epr = lambda x: x.employed_all / x.population * 100)
     )
 
+
 def rename_col_index(df, label):
     """rename level 0 of column indes to "label"
     
