@@ -59,6 +59,17 @@ def nom_year_ending_annual(df_nom=None, quarter="A-Jun"):
     if df_nom is None:
         df_nom = nom()
 
+    # check there are 4 quarters that match the periodicity of "quarter"
+    # find the first quart to match ending quarter, and remove elements to the subsequent quarter
+    for i, date_ in enumerate(df_nom.index[:4]):
+        if date_.strftime("%b") == quarter[-3:]:
+            idx = i + 1
+            df_nom = df_nom.iloc[idx:]
+            break
+    
+    if df_nom.index[3].strftime("%b") != quarter[-3:]:
+        print("1st DATE VALUE IS NOT A FULL YEAR")
+
     nom_annual = df_nom.resample(quarter).sum()
 
     # remove last year if not full year (ie nom last period == quarter parameter)
