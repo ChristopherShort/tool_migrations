@@ -274,6 +274,14 @@ def write_y_axis_label(
     return None
 
 
+def bar_dates(ax, rotation=0):
+    labels= [f"{pd.to_datetime(t.get_text()): %b\n%Y}" for t in ax.xaxis.get_ticklabels()]
+
+    ax.xaxis.set_ticklabels(labels, rotation=0)
+
+    return
+
+
 def set_fin_year_axis(
     ax, rotation=0, ha="center", end_of_fin_year=True, every_year=True
     ):
