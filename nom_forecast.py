@@ -1246,6 +1246,9 @@ def add_nom(df):
     --------
     df : extended with nom for each visa_group plus total nom
     """
+
+    #TODO - don't assume direction is always second
+    # TODO - generalise - find "direction" column header make it first 
     # ensure no NOM elements
     df = remove_nom_levels(df)
 
@@ -1262,6 +1265,53 @@ def add_nom(df):
     )
 
     return pd.concat([df, nom_total_monthly], axis=1)
+
+def add_nom_4d(df):
+    """
+    add nom to each visa group and append a total nom visagroup to the dataframe
+    
+    Parameters:
+    -----------
+    df : dataframe
+    A nom dataframe with multiindex columns of visa_group by (arrivals, departures) - but no nom elements
+    
+    Returns:
+    --------
+    df : extended with nom for each visa_group plus total nom
+    """
+
+    #TODO - don't assume direction is always second
+    # TODO - generalise - find "direction" column header make it first 
+    # ensure no NOM elements
+    # df = remove_nom_levels(df)
+
+    ## Create nom for each visa grouop
+    # nom_monthly = df.swaplevel(axis=1).arrivals - df.swaplevel(axis=1).departures
+    # nom_monthly.columns = pd.MultiIndex.from_product([nom_monthly.columns, ["nom"]])
+    # df = pd.concat([df, nom_monthly], axis=1).sort_index(axis=1)
+    nom_monthly = df.arrivals - df.departures
+    nom_monthly.columns = (pd
+        .MultiIndex
+        .from_product(
+            [["nom"], nom_monthly.columns.levels[0], nom_monthly.columns.levels[1]], 
+            names = ["direction", "visa_group", "state"]
+            )
+    )
+    df = pd.concat([df, nom_monthly], axis=1) # .sort_index(axis=1)
+
+    ## Create nom total
+    # nom_total_monthly = df.sum(axis=1, level=1)
+    # nom_total_monthly.columns = (pd
+    #     .MultiIndex
+    #     .from_product([["nom"], nom_total_monthly.columns])
+    # )
+    # nom_total_monthly = df.sum(axis=1, level=1)
+    # nom_total_monthly.columns = (pd
+    #     .MultiIndex
+    #     .from_product([["nom"], nom_total_monthly.columns])
+    # )
+
+    return df #pd.concat([df, nom_total_monthly], axis=1)
 
 
 def remove_nom_levels(df):
