@@ -119,12 +119,37 @@ def process_original_ABS_data(abs_original_data_folder, analysis_folder):
 
     date_times = ["Duration_movement_date"]
 
+    ### For unzipped sas data filess files
+    ### Requires both options - older folders may not have the zipped version
+    # for abs_filepath in sorted(abs_original_data_folder.glob("*.sas7bdat")):
+        # print(abs_filepath.stem)
+
+        # df = pd.read_sas(abs_filepath, encoding="latin-1", format="sas7bdat").rename(
+        #     columns=str.lower
+        # )
+
+
     for abs_filepath in sorted(abs_original_data_folder.glob("*.sas7bdat")):
         print(abs_filepath.stem)
 
         df = pd.read_sas(abs_filepath, encoding="latin-1", format="sas7bdat").rename(
             columns=str.lower
         )
+    # for zip_filename in sorted(abs_original_data_folder.glob("*.zip")):
+    #     zipped_file = zipfile.ZipFile(zip_filename, 'r')
+
+    #     # There's only expected to be one file in each zip
+    #     if len(zipped_file.namelist()) != 1:
+    #         raise ValueError("Chris: zipped file has more than one file...recode!")
+    #     sasfile = zipfile.open(zipped_file.namelist()[0])
+        
+    #     print(sasfile.stem)
+
+    #     df = pd.read_sas(sasfile, encoding="latin-1", format="sas7bdat").rename(
+    #         columns=str.lower
+    #     )
+
+        ### need to fix all abs_filepath below
 
         # adjust datatypes and write out:
 
@@ -2169,3 +2194,44 @@ def check_nom_vsc_in_mappers(df, mapper):
         print(f"{error_msg}")
         raise ValueError(f"\nChris: {error_msg}")
     return True
+
+### COVID scenarios
+
+def MPO_change(df, date_, visa_, reduction):
+    """Adjust a visatype, year by a fixed amount - distributing across visa types on basis of share
+
+    change_array = (
+        ("2020-09" ,( "family"), 2_500),
+        ("2020-12" , "family", 2_500),
+        ("2020-09" , "skill_permanent", 5_000),
+        ("2020-12" , "skill_permanent", 5_000),
+    )
+
+    for changes in change_array:
+        date_, visa_, reduction = changes
+        visa_ = ("arrivals", visa_)
+        scenario_2021_Q2.loc[date_, visa_] = MPO_change(scenario_2021_Q2, date_=date_, visa_=("arrivals", visa_), reduction=reduction)
+
+    Parameters
+    ----------
+    df : [type]
+        [description]
+    date_ : [type]
+        [description]
+    visa_ : [type]
+        [description]
+    reduction : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+    state_allocation_reduction = (df.loc[date_, visa_]
+                         .divide(
+                             (df.loc[date_, visa_].sum(axis=1)), axis="rows"
+                         )
+                         * reduction
+                        )
+    return df.loc[date_, visa_].subtract(state_allocation_reduction, axis="rows").values
