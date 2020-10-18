@@ -2237,12 +2237,14 @@ def MPO_change(df, date_, visa_, reduction):
     return df.loc[date_, visa_].subtract(state_allocation_reduction, axis="rows").values
 
 
-    def MPO_level_change(df, date_, visa_, level_change, operation="subtraction"):
+def MPO_level_change(df, date_, visa_, level_change, operation="subtraction"):
     """Add or Subtract from a State or a visa group.
-    The change is uniformly spread across next column index down (acreoss visa groups if spreading change frome State or across states 
+    The change is uniformly spread across next column index down 
+    (across visa groups if spreading change from State or across states 
     if spreading change to a visa group)
     
-    Add in some error checks or messages to confirm whether it's applied to visa or state and relevant state/visa is in top level group
+    Add in some error checks or messages to confirm whether it's applied 
+    to visa or state and relevant state/visa is in top level group
     """
     state_allocation_increase = (df.loc[date_, visa_]
                          .divide(
