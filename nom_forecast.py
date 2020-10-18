@@ -2261,3 +2261,22 @@ def MPO_level_change(df, date_, visa_, level_change, operation="subtraction"):
     else:
         raise ValueError(f"Chris: only 'addtional' or 'subtraction'. You tried {operation}.")
 
+def get_fy_axis_labels(df):
+    """Generate a Jun\n20202 label from a time series index
+
+    Parameters
+    ----------
+    df : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
+    
+    return [f"Jun\n{t[:4]}" 
+                       if ((t[6]=="6") & (int(t[:4])%4 == 0))  else "" 
+                       for t in df.index.astype(str)
+                  ]
+    
