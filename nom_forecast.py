@@ -1274,6 +1274,7 @@ def add_nom(df):
 
     #TODO - don't assume direction is always second
     # TODO - generalise - find "direction" column header make it first 
+    
     # ensure no NOM elements
     df = remove_nom_levels(df)
 
