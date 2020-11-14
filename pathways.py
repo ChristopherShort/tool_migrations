@@ -77,7 +77,7 @@ def get_visa_group(df, vsc, start_date=pd.Timestamp(2017, 6, 30), end_date=pd.Ti
             )
 
 
-def get_visa_codes(file_path):
+def get_visa_codes(file_path, sheet_name="codes"):
     '''
     Return a dataframe with ABS visa groupings (in cat no. 3412) by subclass
     See ABS Migration unit for updated copies of excel file
@@ -92,7 +92,7 @@ def get_visa_codes(file_path):
     dataframe
     '''
 
-    visa_codes = (pd.read_excel(file_path, sheet_name='codes')
+    visa_codes = (pd.read_excel(file_path, sheet_name=sheet_name)
                     .rename(columns=str.lower)
                     .rename(columns=lambda x: x.replace(' ', '_'))
                   # make sure visa subclass code is a string

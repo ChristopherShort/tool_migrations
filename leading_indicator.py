@@ -18,18 +18,33 @@ def get_leading_indicator(filepath, sheet_name
 
     """
 
+## Dec 2019 order
+    # 'australian_citizen',
+    # 'new_zealand_citizen',
+    # 'family',
+    # "humanitarian",
+    # 'skill_permanent',
+    # 'other_permanent',
+    # 'other_temporary',
+    # 'skill_temporary',
+    # 'student',
+    # 'visitor',
+    # #     'working_holiday',
+    # 'temporary_work',
+    # 'unclassified',
+
     abs_visas = [
     'australian_citizen',
     'new_zealand_citizen',
     'family',
+    "humanitarian",
     'skill_permanent',
     'other_permanent',
-    'other_temporary',
     'skill_temporary',
     'student',
     'visitor',
-    #     'working_holiday',
-    'temporary_work',
+    'working_holiday',
+    'other_temporary',
     'unclassified',
     ]
 
@@ -42,7 +57,7 @@ def get_leading_indicator(filepath, sheet_name
             skipfooter = 2,
             index_col=0, 
             header=None,
-            usecols="A:W",
+            usecols="A:Y",
             parse_dates=True
             )
         .dropna(axis='index', how='all')
